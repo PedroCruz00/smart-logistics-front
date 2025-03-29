@@ -1,0 +1,20 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 75vh; /* Se ajusta automáticamente según el contenido */
+  width: 100%;
+  max-width: 1200px; /* Evita que en pantallas grandes se vea demasiado ancho */
+  margin: 0 auto;
+  padding: 20px; /* Espaciado en pantallas pequeñas */
+  background-color: #f5f5f5;
+}
+
+/* Responsividad para pantallas pequeñas */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px; /* Reduce padding en móviles */
+    min-height: auto; /* Permite que el contenido ajuste la altura */
+  }
+}
