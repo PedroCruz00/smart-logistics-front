@@ -1,0 +1,21 @@
+.almacen-detail-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.almacen-info {
+  margin-bottom: 30px;
+}
+
+.map-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .map-container {
+    height: 300px;
+  }
+}
