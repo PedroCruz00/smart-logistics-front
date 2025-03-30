@@ -5,9 +5,9 @@ import "./Layout.css";
 function Layout({ children }) {
   return (
     <>
-      <Navbar />
+      <Navbar className="navbar" />
       <div className="container mt-4">{children}</div>
-      <Footer />
+      <Footer className="footer" />
     </>
   );
 }

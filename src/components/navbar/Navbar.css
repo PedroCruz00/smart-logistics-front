@@ -1,0 +1,14 @@
+.navbar .nav-link {
+  color: #333; /* Color normal */
+  transition: 0.3s;
+}
+
+.navbar .nav-link:hover {
+  color: #463ec2; /* Color al pasar el mouse */
+}
+
+.navbar .nav-link.active {
+  font-weight: bold;
+  color: #463ec2 !important; /* Resalta el enlace activo */
+  border-bottom: 2px solid #463ec2; /* Línea debajo */
+}

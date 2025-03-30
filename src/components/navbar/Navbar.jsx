@@ -1,15 +1,21 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useUser } from "../../services/UserContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Navbar.css";
 import logo from "./assets/logo.png";
 
 function Navbar() {
+  const { user } = useUser();
+  const location = useLocation();
+  const isActive = (path) => (location.pathname === path ? "active" : "");
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid">
         <Link className="navbar-brand" to="/">
-          <img src={logo} alt="Logo" width="50" height="50" /> {}
+          <img src={logo} alt="Logo" width="50" height="50" />
         </Link>
+
         <button
           className="navbar-toggler"
           type="button"
@@ -21,35 +27,37 @@ function Navbar() {
         >
           <span className="navbar-toggler-icon" />
         </button>
+
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <Link className="nav-link active" aria-current="page" to="/">
+              <Link className={`nav-link ${isActive("/")}`} to="/">
                 Home
               </Link>
             </li>
+
             <li className="nav-item">
-              <Link className="nav-link" to="/management">
+              <Link
+                className={`nav-link ${isActive("/management")}`}
+                to="/management"
+              >
                 Management
               </Link>
             </li>
-            <li className="nav-item">
-              <span className="nav-link disabled" aria-disabled="true">
-                Disabled
-              </span>
-            </li>
+            {user.role === "superadmin" && (
+              <li className="nav-item">
+                <Link
+                  className={`nav-link ${isActive("/settings")}`}
+                  to="/settings"
+                >
+                  Settings
+                </Link>
+              </li>
+            )}
           </ul>
-          <form className="d-flex">
-            <input
-              className="form-control me-2"
-              type="search"
-              placeholder="Search"
-              aria-label="Search"
-            />
-            <button className="btn btn-outline-primary" type="submit">
-              Search
-            </button>
-          </form>
+          <span className="navbar-text">
+            {user.name} ({user.role})
+          </span>
         </div>
       </div>
     </nav>

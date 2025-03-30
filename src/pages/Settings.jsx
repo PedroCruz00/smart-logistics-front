@@ -1,0 +1,25 @@
+import Modal from "../components/modal/Modal";
+import Input from "../components/input/Input";
+import "./Settings.css";
+
+function Settings() {
+  return (
+    <div className="form-settings">
+      <label className="label" htmlFor="stock">
+        Stock (%){" "}
+      </label>
+      <Input className="input" id="stock" />
+      <label className="label" htmlFor="nearby">
+        Nearby(meters)
+      </label>
+      <Input className="input" id="nearby" />
+      <Modal
+        title="Update settings"
+        content="Are you sure?
+        It will change the configurations to create new stores"
+        buttonLabel="Update"
+      />
+    </div>
+  );
+}
+export default Settings;

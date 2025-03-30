@@ -36,7 +36,7 @@ function Modal({ title, content, buttonLabel }) {
                   className="btn btn-secondary"
                   onClick={() => setShow(false)}
                 >
-                  Cerrar
+                  Ok
                 </button>
               </div>
             </div>
