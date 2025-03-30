@@ -1,15 +1,20 @@
-.input {
-  width: 50%;
-  padding: 0.2rem 0.4rem;
-  margin: 0.3rem 0;
-  display: inline-block;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
+.form-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+.form-settings > * {
+  display: flex;
+  align-items: center;
+  margin: 0.3rem;
 }
 
 .label {
   font-size: 16px;
   font-weight: bold;
+  width: 8rem;
 }
 
 .modal {

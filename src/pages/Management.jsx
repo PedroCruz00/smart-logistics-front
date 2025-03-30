@@ -1,23 +1,11 @@
 import { useState } from "react";
 import Card from "../components/card/Card";
-import Input from "../components/input/Input";
 import "./Management.css";
+import data from "../data/stores.json";
 
 function Management() {
-  const [searchId, setSearchId] = useState(""); // Estado para filtrar por ID
-
-  const cardData = [
-    { id: "0001", title: "Nuevo Colón", description: "No hay descripción" },
-    {
-      id: "0002",
-      title: "Antiguo Colón",
-      description: "Descripción detallada",
-    },
-    { id: "0003", title: "Centro", description: "En el centro de la ciudad" },
-    { id: "0004", title: "Zona Norte", description: "Zona moderna" },
-    { id: "0005", title: "Playa", description: "Cerca del mar" },
-    { id: "0006", title: "Montaña", description: "Vista espectacular" },
-  ];
+  const [searchId, setSearchId] = useState("");
+  const [cardData, setCardData] = useState(data);
 
   // Filtramos las tarjetas por ID
   const filteredCards = cardData.filter((card) =>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import InputDD from "../components/input/InputDD";
 import Input from "../components/input/Input";
 import Modal from "../components/modal/Modal";
+import "./Settings.css";
 
 function Home() {
   const [selectedOption, setSelectedOption] = useState("Opción 1"); // Estado para la selección
@@ -19,14 +20,14 @@ function Home() {
       />
 
       <label htmlFor="input1">Escribe algo:</label>
-      <Input id="input1" />
+      <Input className="input" id="input1" />
 
       <label htmlFor="input2">Escribe algo más:</label>
-      <Input id="input2" />
+      <Input className="input" id="input2" />
       <Modal
-        title="Título del Modal"
-        content="Este es un mensaje dentro del modal."
-        buttonLabel="Abrir Modal"
+        title="New Store"
+        content="Do you want to create a new store?"
+        buttonLabel="Create"
       />
     </>
   );

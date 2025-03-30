@@ -5,14 +5,18 @@ import "./Settings.css";
 function Settings() {
   return (
     <div className="form-settings">
-      <label className="label" htmlFor="stock">
-        Stock (%){" "}
-      </label>
-      <Input className="input" id="stock" />
-      <label className="label" htmlFor="nearby">
-        Nearby(meters)
-      </label>
-      <Input className="input" id="nearby" />
+      <div>
+        <label className="label" htmlFor="stock">
+          Stock (%){" "}
+        </label>
+        <Input className="input" id="stock" />
+      </div>
+      <div>
+        <label className="label" htmlFor="nearby">
+          Nearby(meters)
+        </label>
+        <Input className="input" id="nearby" />
+      </div>
       <Modal
         title="Update settings"
         content="Are you sure?

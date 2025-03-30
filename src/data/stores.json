@@ -1,0 +1,32 @@
+[
+    {
+        "id": "0001",
+        "title": "Tunja",
+        "description": "No hay descripción"
+    },
+    {
+        "id": "0002",
+        "title": "Antiguo Colón",
+        "description": "Descripción detallada"
+    },
+    {
+        "id": "0003",
+        "title": "Centro",
+        "description": "En el centro de la ciudad"
+    },
+    {
+        "id": "0004",
+        "title": "Zona Norte",
+        "description": "Zona moderna"
+    },
+    {
+        "id": "0005",
+        "title": "Playa",
+        "description": "Cerca del mar"
+    },
+    {
+        "id": "0006",
+        "title": "Montaña",
+        "description": "Vista espectacular"
+    }
+]
