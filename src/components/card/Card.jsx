@@ -8,7 +8,7 @@ function Card(props) {
     props.description ||
     "Some quick example text to build on the card title and make up the bulk of the card";
   // Ruta a la que se navegará al hacer clic en el botón
-  let linkTo = props.linkTo || `/almacen/${props.id}`;
+  let linkTo = props.linkTo || `/warehouse/${props.id}`;
 
   return (
     <div className="card">
