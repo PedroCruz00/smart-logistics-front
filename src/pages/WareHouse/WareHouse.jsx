@@ -1,10 +1,10 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import React from "react";
+import { useParams } from "react-router-dom";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 function AlmacenDetail() {
   const { id } = useParams();
-  
+
   // Estos valores deberían venir de una API basada en el ID del almacén
   // Por ahora usamos valores de ejemplo
   const almacenData = {
@@ -13,13 +13,13 @@ function AlmacenDetail() {
     descripcion: "Descripción detallada del almacén",
     ubicacion: {
       lat: 5.5351, // Coordenadas de ejemplo (Colombia)
-      lng: -73.3672
-    }
+      lng: -73.3672,
+    },
   };
 
   const containerStyle = {
-    width: '100%',
-    height: '400px'
+    width: "100%",
+    height: "400px",
   };
 
   return (
@@ -29,10 +29,12 @@ function AlmacenDetail() {
         <h3>{almacenData.nombre}</h3>
         <p>{almacenData.descripcion}</p>
       </div>
-      
+
       <div className="map-container">
         <h4>Ubicación</h4>
-        <LoadScript googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
+        <LoadScript
+          googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+        >
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={almacenData.ubicacion}

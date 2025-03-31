@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Card from "../components/card/Card";
+import Card from "../../components/card/Card";
 import "./Management.css";
-import data from "../data/stores.json";
+import data from "../../data/stores.json";
 
 function Management() {
   const [searchId, setSearchId] = useState("");

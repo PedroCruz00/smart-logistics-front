@@ -17,7 +17,10 @@ function Card(props) {
         <h5 className="card-title">{title}</h5>
         <p className="card-text">{description}</p>
         <Link to={linkTo}>
-          <Button className="button" children={"Go"} />
+          <Button className="button" children={" Location"} />
+        </Link>
+        <Link to={`/editStore/${props.id}`}>
+          <Button className="button" children={"Inspect"} />
         </Link>
       </div>
       <div className="card-footer">2 days ago</div>
