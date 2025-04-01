@@ -1,82 +1,225 @@
 .edit-store-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 1.5rem;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-/* Pestañas */
 .tabs {
   display: flex;
-  justify-content: center;
-  min-height: 80%;
-  min-width: 80%;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ccc;
 }
 
 .tab {
   padding: 10px 20px;
+  background: none;
   border: none;
-  background: #f0f0f0;
   cursor: pointer;
   font-size: 16px;
-  margin: 0 5px;
-  border-radius: 5px;
+  border-bottom: 3px solid transparent;
 }
 
 .tab.active {
-  background: #007bff;
-  color: white;
-}
-
-/* Formulario */
-.edit-store-form .form-group {
-  margin-bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.edit-store-form .form-label {
-  margin-bottom: 0.5rem;
+  border-bottom: 3px solid #4a90e2;
   font-weight: bold;
 }
 
-.edit-store-form .form-input,
-.edit-store-form .form-textarea {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: 100%;
-}
-
-.edit-store-form .form-input:focus,
-.edit-store-form .form-textarea:focus {
-  outline: none;
-  border-color: #007bff;
-}
-
-/* Sección de eliminar */
+.edit-store-form,
 .delete-confirmation {
-  text-align: center;
   margin-top: 20px;
 }
 
-.delete-button {
-  background: red;
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* ID input group */
+.id-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.field-error {
+  color: #e74c3c;
+  font-size: 0.85em;
+  margin-top: 5px;
+}
+
+.form-error {
+  color: #e74c3c;
+  background-color: #fde2e2;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+/* Estilos para la pestaña de productos */
+.products-tab {
+  margin-top: 20px;
+}
+
+.create-button {
+  margin-bottom: 20px;
+  background-color: #4caf50;
   color: white;
-  padding: 10px 20px;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.product-list {
+  list-style: none;
+  padding: 0;
+}
+
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+.product-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.product-id,
+.product-name,
+.product-category,
+.product-price,
+.product-stock {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.stock-edit-button {
+  background: none;
   border: none;
   cursor: pointer;
-  border-radius: 5px;
   font-size: 16px;
+  margin-left: 5px;
+  color: #4a90e2;
+}
+
+.stock-edit-button:hover {
+  color: #2c6db2;
+}
+
+.product-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.edit-button,
+.delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.edit-button:hover {
+  color: #4a90e2;
 }
 
 .delete-button:hover {
-  background: darkred;
+  color: #e74c3c;
+}
+
+.error-message {
+  color: #e74c3c;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #fde2e2;
+  border-radius: 4px;
+}
+
+/* Estilos para el formulario de producto */
+.product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Si también quieres personalizar el estilo del modal */
+.modal-container {
+  display: inline-block;
+}
+
+.modal-dialog {
+  max-width: 500px;
+  margin: 1.75rem auto;
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 0.3rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.btn-close {
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+  gap: 0.5rem;
 }

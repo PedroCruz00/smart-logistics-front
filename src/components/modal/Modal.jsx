@@ -2,13 +2,43 @@ import { useState } from "react";
 import Button from "../button/Button";
 import "./Modal.css";
 
-function Modal({ title, content, buttonLabel }) {
+function Modal({
+  title,
+  content,
+  buttonLabel,
+  onConfirm,
+  triggerButton,
+  onClose,
+}) {
   const [show, setShow] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleConfirm = async () => {
+    setSaving(true);
+    try {
+      await onConfirm();
+      setShow(false);
+    } catch (error) {
+      console.error("Error in confirmation action:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClose = () => {
+    setShow(false);
+    if (onClose) onClose();
+  };
 
   return (
     <div className="modal-container">
-      {/* Botón para abrir el modal */}
-      <Button onClick={() => setShow(true)}>{buttonLabel}</Button>
+      {/* Si se proporciona un botón personalizado para abrir el modal */}
+      {triggerButton ? (
+        <div onClick={() => setShow(true)}>{triggerButton}</div>
+      ) : (
+        /* Botón predeterminado para abrir el modal */
+        <Button onClick={() => setShow(true)}>{buttonLabel}</Button>
+      )}
 
       {/* Modal */}
       {show && (
@@ -25,14 +55,17 @@ function Modal({ title, content, buttonLabel }) {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => setShow(false)}
+                  onClick={handleClose}
                 ></button>
               </div>
               <div className="modal-body">
-                <p>{content}</p>
+                {typeof content === "string" ? <p>{content}</p> : content}
               </div>
               <div className="modal-footer">
-                <Button onClick={() => setShow(false)}>Ok</Button>
+                <Button onClick={handleConfirm} disabled={saving}>
+                  {saving ? "Guardando..." : "Confirmar"}
+                </Button>
+                <Button onClick={handleClose}>Cancelar</Button>
               </div>
             </div>
           </div>

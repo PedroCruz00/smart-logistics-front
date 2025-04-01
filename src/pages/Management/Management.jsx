@@ -17,10 +17,9 @@ function Management() {
       <h1>Management</h1>
 
       <div className="filter-container">
-        <h3>Filter by ID:</h3>
         <input
           type="text"
-          placeholder="Ingrese ID..."
+          placeholder="Filter by ID..."
           value={searchId}
           onChange={(e) => setSearchId(e.target.value)}
         />
