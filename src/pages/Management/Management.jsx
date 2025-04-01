@@ -80,14 +80,6 @@ function Management() {
         title={warehouse.name || "Almacén sin nombre"}
         description={`Ubicación: ${warehouse.location || "No especificada"}`}
       />
-      <div className="card-actions">
-        <Button 
-          className="inspect-button"
-          onClick={() => handleInspect(warehouse.id)}
-        >
-          Inspeccionar
-        </Button>
-      </div>
     </div>
   );
 
