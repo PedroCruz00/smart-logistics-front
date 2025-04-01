@@ -23,7 +23,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAy_Z7JdMcrcFp6zfHevAICt-b4rfENjms',
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.REACT_APP_FIREBASE_API_KEY}`,
         {
           method: 'POST',
           headers: {
