@@ -1,0 +1,17 @@
+.mybutton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 0.2rem;
+  padding: 0.3rem;
+}
+.btn {
+  height: 100%;
+  width: 80%;
+  font-size: 1rem;
+  text-decoration: none;
+}
+.btn-outline-primary {
+  text-decoration: none;
+}

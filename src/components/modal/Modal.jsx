@@ -1,14 +1,14 @@
 import { useState } from "react";
+import Button from "../button/Button";
+import "./Modal.css";
 
 function Modal({ title, content, buttonLabel }) {
   const [show, setShow] = useState(false);
 
   return (
-    <>
+    <div className="modal-container">
       {/* Botón para abrir el modal */}
-      <button className="btn btn-primary" onClick={() => setShow(true)}>
-        {buttonLabel}
-      </button>
+      <Button onClick={() => setShow(true)}>{buttonLabel}</Button>
 
       {/* Modal */}
       {show && (
@@ -32,18 +32,13 @@ function Modal({ title, content, buttonLabel }) {
                 <p>{content}</p>
               </div>
               <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setShow(false)}
-                >
-                  Ok
-                </button>
+                <Button onClick={() => setShow(false)}>Ok</Button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
