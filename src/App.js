@@ -13,15 +13,6 @@ function App() {
   return (
     <UserProvider>
       <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/management" element={<Management />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/almacen/:id" element={<WareHouse />} />
-            <Route path="/editStore/:id" element={<EditStore />} />
-          </Routes>
-        </Layout>
         <Routes>
           {/* Ruta pública para el login */}
           <Route path="/login" element={<Login />} />
@@ -48,10 +39,25 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
+          <Route path="/almacen/:id" element={
+            <ProtectedRoute>
+              <Layout>
+                <WareHouse />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          {/* Añadimos la ruta /warehouse/:id que es la que se está intentando acceder */}
           <Route path="/warehouse/:id" element={
             <ProtectedRoute>
               <Layout>
                 <WareHouse />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/editStore/:id" element={
+            <ProtectedRoute>
+              <Layout>
+                <EditStore />
               </Layout>
             </ProtectedRoute>
           } />

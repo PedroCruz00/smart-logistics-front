@@ -12,7 +12,7 @@ function Navbar() {
 
   const handleLogout = async () => {
     await logoutUser();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -50,7 +50,7 @@ function Navbar() {
                 Management
               </Link>
             </li>
-            {user.role === "superadmin" && (
+            {user && user.role === "superadmin" && (
               <li className="nav-item">
                 <Link
                   className={`nav-link ${isActive("/settings")}`}
@@ -63,12 +63,9 @@ function Navbar() {
           </ul>
           <div className="d-flex align-items-center">
             <span className="navbar-text me-3">
-              {user.name || user.displayName} ({user.role})
+              {user ? `${user.name || user.displayName} (${user.role})` : "Cargando..."}
             </span>
-            <button 
-              className="btn btn-outline-danger" 
-              onClick={handleLogout}
-            >
+            <button className="btn btn-outline-danger" onClick={handleLogout}>
               Cerrar Sesión
             </button>
           </div>
