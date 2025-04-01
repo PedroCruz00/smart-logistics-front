@@ -1,24 +1,48 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import stores from "../../data/stores.json";
 import Button from "../../components/button/Button";
 import Modal from "../../components/modal/Modal";
 import "./EditStore.css";
 
+// Funciones de autenticación
+const getAuthToken = () => {
+  return localStorage.getItem("authToken");
+};
+
+const createAuthHeaders = () => {
+  const token = getAuthToken();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+const isAuthenticated = () => {
+  const token = getAuthToken();
+  return !!token;
+};
+
+const redirectIfNotAuthenticated = (navigate) => {
+  if (!isAuthenticated()) {
+    navigate("/login", { replace: true });
+    return false;
+  }
+  return true;
+};
+
 function EditStore() {
-  const { id } = useParams();
+  const { id } = useParams(); // Recibe el ID del almacén de la URL
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("edit");
 
-  // Buscar la tienda
-  const dataStore = stores.find((store) => store.id === id);
-  const [title, setTitle] = useState(dataStore ? dataStore.title : "");
-  const [description, setDescription] = useState(
-    dataStore ? dataStore.description : ""
-  );
+  // Estado para almacenar la información del almacén
+  const [store, setStore] = useState(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
 
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [storeProducts, setStoreProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [idExists, setIdExists] = useState(false);
 
@@ -36,43 +60,109 @@ function EditStore() {
   const [isGenerateId, setIsGenerateId] = useState(true);
 
   // Verificar que la URL del backend existe
-  const backendUrl =
-    process.env.REACT_APP_BACKEND_URL || "http://localhost:8080";
+  const backendUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
+
+  // Verificar autenticación al cargar
+  useEffect(() => {
+    if (!redirectIfNotAuthenticated(navigate)) return;
+  }, [navigate]);
+
+  // Cargar información del almacén
+  useEffect(() => {
+    if (!id || !isAuthenticated()) return;
+
+    const fetchStoreDetails = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${backendUrl}/api/almacenes/${id}`, {
+          headers: createAuthHeaders(),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error fetching store: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setStore(data);
+        setTitle(data.name || "");
+        setDescription(data.location || "");
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching store details:", err);
+        setError("No se pudo cargar la información del almacén");
+        setLoading(false);
+      }
+    };
+
+    fetchStoreDetails();
+  }, [id, backendUrl, navigate]);
 
   // Cargar productos
-  const fetchProducts = () => {
+  const fetchProducts = async () => {
     setLoading(true);
-    fetch(`${backendUrl}/api/master-data/products`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(
-            `Error fetching products: ${res.status} ${res.statusText}`
-          );
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setProducts(data);
-        } else {
-          console.error("Received non-array data:", data);
-          setProducts([]);
-          setError("Formato de datos inesperado. Contacte al administrador.");
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching products:", err);
-        setError("Failed to load products. Please try again.");
-        setLoading(false);
+    try {
+      const response = await fetch(`${backendUrl}/api/master-data/products`, {
+        headers: createAuthHeaders(),
       });
+
+      if (!response.ok) {
+        throw new Error(`Error fetching products: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        console.error("Received non-array data:", data);
+        setProducts([]);
+        setError("Formato de datos inesperado. Contacte al administrador.");
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setError("Failed to load products. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar productos específicos del almacén
+  const fetchStoreProducts = async () => {
+    if (!id) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${backendUrl}/api/almacenes/${id}/productos`,
+        {
+          headers: createAuthHeaders(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error fetching store products: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setStoreProducts(data);
+      } else {
+        console.error("Received non-array data for store products:", data);
+        setStoreProducts([]);
+      }
+    } catch (err) {
+      console.error("Error fetching store products:", err);
+      setError("Failed to load store products. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    if (activeTab === "products") {
+    if (activeTab === "products" && isAuthenticated()) {
       fetchProducts();
+      fetchStoreProducts();
     }
-  }, [activeTab]);
+  }, [activeTab, id]);
 
   // Verificar si el ID ya existe
   useEffect(() => {
@@ -161,9 +251,7 @@ function EditStore() {
 
       const response = await fetch(`${backendUrl}/api/master-data/products`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: createAuthHeaders(),
         body: JSON.stringify(productToCreate),
       });
 
@@ -201,34 +289,50 @@ function EditStore() {
       }
 
       // Preparar el producto para actualizar (manteniendo el ID original)
-      const productToUpdate = {
-        ...productForm,
-        id:
-          typeof selectedProduct.id === "string"
-            ? parseInt(selectedProduct.id)
-            : selectedProduct.id,
-        price: Number(productForm.price),
-        stock: Number(productForm.stock),
-      };
+      const productId =
+        typeof selectedProduct.id === "string"
+          ? parseInt(selectedProduct.id)
+          : selectedProduct.id;
 
-      console.log("Actualizando producto:", productToUpdate);
-
-      const response = await fetch(
-        `${backendUrl}/api/master-data/products/${selectedProduct.id}`,
+      // Actualizar nombre
+      await fetch(
+        `${backendUrl}/api/master-data/products/${productId}/name?name=${encodeURIComponent(
+          productForm.name
+        )}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(productToUpdate),
+          headers: createAuthHeaders(),
         }
       );
 
-      if (!response.ok) {
-        const responseText = await response.text();
-        console.error("Error response:", response.status, responseText);
-        throw new Error(`Error updating product: ${response.status}`);
-      }
+      // Actualizar categoría
+      await fetch(
+        `${backendUrl}/api/master-data/products/${productId}/category?category=${encodeURIComponent(
+          productForm.category
+        )}`,
+        {
+          method: "PUT",
+          headers: createAuthHeaders(),
+        }
+      );
+
+      // Actualizar precio
+      await fetch(
+        `${backendUrl}/api/master-data/products/${productId}/price?price=${productForm.price}`,
+        {
+          method: "PUT",
+          headers: createAuthHeaders(),
+        }
+      );
+
+      // Actualizar stock
+      await fetch(
+        `${backendUrl}/api/master-data/products/${productId}/stock?stock=${productForm.stock}`,
+        {
+          method: "PUT",
+          headers: createAuthHeaders(),
+        }
+      );
 
       fetchProducts();
       setProductForm({ id: "", name: "", category: "", price: "", stock: "" });
@@ -244,47 +348,34 @@ function EditStore() {
     }
   };
 
-  // Actualizar sólo el stock de un producto
-  const updateProductStock = async (productId, newStock) => {
+  // Actualizar un atributo específico de un producto
+  const updateProductAttribute = async (productId, attribute, value) => {
     try {
-      console.log("Actualizando stock:", productId, newStock);
-
-      // Obtener el producto actual primero
-      const product = products.find(
-        (p) => p.id.toString() === productId.toString()
-      );
-      if (!product) {
-        throw new Error("Producto no encontrado");
-      }
-
-      // Preparar el objeto completo para enviar
-      const updatedProduct = {
-        ...product,
-        stock: newStock,
-      };
+      console.log(`Actualizando ${attribute}:`, productId, value);
 
       const response = await fetch(
-        `${backendUrl}/api/master-data/products/${productId}/stock?stock=${newStock}`,
+        `${backendUrl}/api/master-data/products/${productId}/${attribute}?${attribute}=${encodeURIComponent(
+          value
+        )}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedProduct),
+          headers: createAuthHeaders(),
         }
       );
 
       if (!response.ok) {
         const responseText = await response.text();
         console.error("Error response:", response.status, responseText);
-        throw new Error(`Error updating stock: ${response.status}`);
+        throw new Error(`Error updating ${attribute}: ${response.status}`);
       }
 
       fetchProducts();
       return true;
     } catch (err) {
-      console.error("Error updating stock:", err);
-      setError("Error al actualizar el stock. Por favor intente nuevamente.");
+      console.error(`Error updating ${attribute}:`, err);
+      setError(
+        `Error al actualizar ${attribute}. Por favor intente nuevamente.`
+      );
       return false;
     }
   };
@@ -300,6 +391,7 @@ function EditStore() {
         `${backendUrl}/api/master-data/products/${selectedProduct.id}`,
         {
           method: "DELETE",
+          headers: createAuthHeaders(),
         }
       );
 
@@ -321,16 +413,53 @@ function EditStore() {
   };
 
   // Manejar el submit del formulario de la tienda
-  const handleSubmitStore = (e) => {
+  const handleSubmitStore = async (e) => {
     e.preventDefault();
-    alert(`Store ${dataStore.id} has been updated!`);
-    // Aquí iría la lógica para actualizar la tienda
+
+    try {
+      // Si ya existe el almacén, actualizarlo
+      if (id) {
+        // Implementar la lógica para actualizar el almacén
+        // Aquí deberías hacer una llamada PUT al endpoint correcto
+        // Por ahora solo mostramos alerta
+        alert(`Store ${id} has been updated!`);
+      } else {
+        // Crear un nuevo almacén
+        const response = await fetch(`${backendUrl}/api/almacenes`, {
+          method: "POST",
+          headers: createAuthHeaders(),
+          body: JSON.stringify({
+            name: title,
+            location: description, // Asumiendo que description se usa como location
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error creating store: ${response.status}`);
+        }
+
+        alert("Store created successfully!");
+        navigate("/almacen");
+      }
+    } catch (err) {
+      console.error("Error saving store:", err);
+      setError("Error al guardar la tienda. Por favor intente nuevamente.");
+    }
   };
 
   // Manejar la eliminación de la tienda
-  const handleDeleteStore = () => {
-    alert(`Store ${dataStore.id} has been deleted!`);
-    navigate("/almacen");
+  const handleDeleteStore = async () => {
+    try {
+      // Implementar la lógica para eliminar el almacén
+      // Aquí deberías hacer una llamada DELETE al endpoint correcto
+
+      // Por ahora solo mostramos alerta
+      alert(`Store ${id} has been deleted!`);
+      navigate("/almacen");
+    } catch (err) {
+      console.error("Error deleting store:", err);
+      setError("Error al eliminar la tienda. Por favor intente nuevamente.");
+    }
   };
 
   // Preparar para editar un producto
@@ -372,8 +501,42 @@ function EditStore() {
     }
   };
 
-  if (!dataStore) {
-    return <h1>Store not found</h1>;
+  // Solicitar al usuario un valor para actualizar un atributo
+  const promptForAttributeUpdate = (product, attribute, currentValue) => {
+    const attributeNames = {
+      name: "nombre",
+      category: "categoría",
+      price: "precio",
+      stock: "stock",
+    };
+
+    const newValue = prompt(
+      `Ingrese el nuevo ${attributeNames[attribute] || attribute}:`,
+      currentValue
+    );
+
+    if (newValue !== null) {
+      if (
+        (attribute === "price" || attribute === "stock") &&
+        isNaN(Number(newValue))
+      ) {
+        alert("Por favor ingrese un valor numérico válido");
+        return;
+      }
+      updateProductAttribute(product.id, attribute, newValue);
+    }
+  };
+
+  if (loading) {
+    return <div className="loading">Cargando información del almacén...</div>;
+  }
+
+  if (error && !store) {
+    return <div className="error-container">{error}</div>;
+  }
+
+  if (!store && !loading) {
+    return <h1>Almacén no encontrado</h1>;
   }
 
   // Renderizado del formulario de producto
@@ -464,7 +627,7 @@ function EditStore() {
 
   return (
     <div className="edit-store-container">
-      <h1>Manage Store {dataStore.id}</h1>
+      <h1>Gestionar Almacén: {title}</h1>
 
       <div className="tabs">
         <button
@@ -490,7 +653,7 @@ function EditStore() {
       {activeTab === "edit" ? (
         <form className="edit-store-form" onSubmit={handleSubmitStore}>
           <div className="form-group">
-            <label htmlFor="title">Title:</label>
+            <label htmlFor="title">Nombre:</label>
             <input
               type="text"
               id="title"
@@ -500,7 +663,7 @@ function EditStore() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="description">Description:</label>
+            <label htmlFor="description">Ubicación:</label>
             <textarea
               id="description"
               value={description}
@@ -508,13 +671,13 @@ function EditStore() {
               className="form-textarea"
             />
           </div>
-          <Button type="submit">Save</Button>
+          <Button type="submit">Guardar</Button>
         </form>
       ) : activeTab === "delete" ? (
         <div className="delete-confirmation">
           <p>
-            ¿Estás seguro de que deseas eliminar la tienda{" "}
-            <strong>{dataStore.title}</strong>?
+            ¿Estás seguro de que deseas eliminar el almacén{" "}
+            <strong>{title}</strong>?
           </p>
           <Button onClick={handleDeleteStore} className="delete-button">
             Eliminar
@@ -552,93 +715,158 @@ function EditStore() {
           {loading ? (
             <p>Cargando productos...</p>
           ) : (
-            <ul className="product-list">
-              {products.length === 0 ? (
-                <p>No hay productos disponibles</p>
-              ) : (
-                products.map((product) => (
-                  <li key={product.id} className="product-item">
-                    <div className="product-info">
-                      <span className="product-id">ID: {product.id}</span>
-                      <span className="product-name">
-                        Nombre: {product.name}
-                      </span>
-                      <span className="product-category">
-                        Categoría: {product.category}
-                      </span>
-                      <span className="product-price">
-                        Precio: ${product.price}
-                      </span>
-                      <span className="product-stock">
-                        Stock: {product.stock}
-                        <Button
-                          className="stock-edit-button"
-                          onClick={() => {
-                            const newStock = prompt(
-                              "Ingrese el nuevo stock:",
-                              product.stock
-                            );
-                            if (newStock !== null && !isNaN(Number(newStock))) {
-                              updateProductStock(product.id, Number(newStock));
-                            }
-                          }}
-                        >
-                          📊
-                        </Button>
-                      </span>
-                    </div>
-                    <div className="product-actions">
-                      {/* Modal para editar producto */}
-                      <Modal
-                        title="Editar Producto"
-                        content={renderProductForm()}
-                        buttonLabel="Guardar Cambios"
-                        onConfirm={updateProduct}
-                        triggerButton={
+            <>
+              <h3>Todos los productos</h3>
+              <ul className="product-list">
+                {products.length === 0 ? (
+                  <p>No hay productos disponibles</p>
+                ) : (
+                  products.map((product) => (
+                    <li key={product.id} className="product-item">
+                      <div className="product-info">
+                        <span className="product-id">ID: {product.id}</span>
+                        <span className="product-name">
+                          Nombre: {product.name}
                           <Button
-                            className="edit-button"
-                            onClick={() => prepareEditProduct(product)}
+                            className="attribute-edit-button"
+                            onClick={() =>
+                              promptForAttributeUpdate(
+                                product,
+                                "name",
+                                product.name
+                              )
+                            }
                           >
                             ✏️
                           </Button>
-                        }
-                        onClose={() => {
-                          setSelectedProduct(null);
-                          setProductForm({
-                            id: "",
-                            name: "",
-                            category: "",
-                            price: "",
-                            stock: "",
-                          });
-                          setError(null);
-                        }}
-                      />
-
-                      {/* Modal para eliminar producto */}
-                      <Modal
-                        title="Eliminar Producto"
-                        content={`¿Estás seguro de que deseas eliminar el producto ${product.name}?`}
-                        buttonLabel="Eliminar"
-                        onConfirm={deleteProduct}
-                        triggerButton={
+                        </span>
+                        <span className="product-category">
+                          Categoría: {product.category}
                           <Button
-                            className="delete-button"
-                            onClick={() => prepareDeleteProduct(product)}
+                            className="attribute-edit-button"
+                            onClick={() =>
+                              promptForAttributeUpdate(
+                                product,
+                                "category",
+                                product.category
+                              )
+                            }
                           >
-                            🗑️
+                            ✏️
                           </Button>
-                        }
-                        onClose={() => {
-                          setSelectedProduct(null);
-                          setError(null);
-                        }}
-                      />
-                    </div>
-                  </li>
-                ))
-              )}
-            </ul>
+                        </span>
+                        <span className="product-price">
+                          Precio: ${product.price}
+                          <Button
+                            className="attribute-edit-button"
+                            onClick={() =>
+                              promptForAttributeUpdate(
+                                product,
+                                "price",
+                                product.price
+                              )
+                            }
+                          >
+                            ✏️
+                          </Button>
+                        </span>
+                        <span className="product-stock">
+                          Stock: {product.stock}
+                          <Button
+                            className="attribute-edit-button"
+                            onClick={() =>
+                              promptForAttributeUpdate(
+                                product,
+                                "stock",
+                                product.stock
+                              )
+                            }
+                          >
+                            📊
+                          </Button>
+                        </span>
+                      </div>
+                      <div className="product-actions">
+                        {/* Modal para editar producto */}
+                        <Modal
+                          title="Editar Producto"
+                          content={renderProductForm()}
+                          buttonLabel="Guardar Cambios"
+                          onConfirm={updateProduct}
+                          triggerButton={
+                            <Button
+                              className="edit-button"
+                              onClick={() => prepareEditProduct(product)}
+                            >
+                              ✏️
+                            </Button>
+                          }
+                          onClose={() => {
+                            setSelectedProduct(null);
+                            setProductForm({
+                              id: "",
+                              name: "",
+                              category: "",
+                              price: "",
+                              stock: "",
+                            });
+                            setError(null);
+                          }}
+                        />
+
+                        {/* Modal para eliminar producto */}
+                        <Modal
+                          title="Eliminar Producto"
+                          content={`¿Estás seguro de que deseas eliminar el producto ${product.name}?`}
+                          buttonLabel="Eliminar"
+                          onConfirm={deleteProduct}
+                          triggerButton={
+                            <Button
+                              className="delete-button"
+                              onClick={() => prepareDeleteProduct(product)}
+                            >
+                              🗑️
+                            </Button>
+                          }
+                          onClose={() => {
+                            setSelectedProduct(null);
+                            setError(null);
+                          }}
+                        />
+                      </div>
+                    </li>
+                  ))
+                )}
+              </ul>
+
+              {/* Productos específicos del almacén */}
+              <h3>Productos en este almacén</h3>
+              <ul className="store-product-list">
+                {storeProducts.length === 0 ? (
+                  <p>No hay productos en este almacén</p>
+                ) : (
+                  storeProducts.map((product) => (
+                    <li key={product.id} className="product-item">
+                      <div className="product-info">
+                        <span className="product-id">ID: {product.id}</span>
+                        <span className="product-name">
+                          Nombre: {product.name}
+                        </span>
+                        <span className="product-category">
+                          Categoría: {product.category}
+                        </span>
+                        <span className="product-price">
+                          Precio: ${product.price}
+                        </span>
+                        <span className="product-stock">
+                          Stock: {product.stock}
+                        </span>
+                      </div>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </>
           )}
         </div>
       )}

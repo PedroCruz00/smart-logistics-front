@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../button/Button";
 import "./Modal.css";
 
@@ -9,9 +9,17 @@ function Modal({
   onConfirm,
   triggerButton,
   onClose,
+  open, // Nuevo prop para controlar el modal desde fuera
 }) {
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Sincronizar el estado interno con el prop externo
+  useEffect(() => {
+    if (open !== undefined) {
+      setShow(open);
+    }
+  }, [open]);
 
   const handleConfirm = async () => {
     setSaving(true);
@@ -32,15 +40,16 @@ function Modal({
 
   return (
     <div className="modal-container">
-      {/* Si se proporciona un botón personalizado para abrir el modal */}
+      {/** Si se proporciona un botón personalizado para abrir el modal **/}
       {triggerButton ? (
         <div onClick={() => setShow(true)}>{triggerButton}</div>
       ) : (
-        /* Botón predeterminado para abrir el modal */
-        <Button onClick={() => setShow(true)}>{buttonLabel}</Button>
+        /** Botón predeterminado para abrir el modal, solo si no se controla externamente **/
+        open === undefined && (
+          <Button onClick={() => setShow(true)}>{buttonLabel}</Button>
+        )
       )}
-
-      {/* Modal */}
+      {/** Modal **/}
       {show && (
         <div
           className="modal fade show d-block"
