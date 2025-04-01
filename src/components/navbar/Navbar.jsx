@@ -1,13 +1,19 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "../../services/UserContext";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Navbar.css";
 import logo from "./assets/logo.png";
 
 function Navbar() {
-  const { user } = useUser();
+  const { user, logoutUser } = useUser();
   const location = useLocation();
+  const navigate = useNavigate();
   const isActive = (path) => (location.pathname === path ? "active" : "");
+
+  const handleLogout = async () => {
+    await logoutUser();
+    navigate('/login');
+  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
@@ -55,9 +61,17 @@ function Navbar() {
               </li>
             )}
           </ul>
-          <span className="navbar-text">
-            {user.name} ({user.role})
-          </span>
+          <div className="d-flex align-items-center">
+            <span className="navbar-text me-3">
+              {user.name || user.displayName} ({user.role})
+            </span>
+            <button 
+              className="btn btn-outline-danger" 
+              onClick={handleLogout}
+            >
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
       </div>
     </nav>
