@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useUser } from '../../services/UserContext';
 import './Login.css';
 
@@ -10,7 +9,7 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, setUserFromToken } = useUser();
 
   // Si ya hay un usuario autenticado, redirigir a la página principal
   if (user) {
@@ -23,8 +22,31 @@ function Login() {
     setLoading(true);
 
     try {
-      const auth = getAuth();
-      await signInWithEmailAndPassword(auth, email, password);
+      const response = await fetch(
+        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAy_Z7JdMcrcFp6zfHevAICt-b4rfENjms',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            returnSecureToken: true,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Error al iniciar sesión');
+      }
+
+      // Llamar a la función del contexto para establecer el usuario usando el token
+      setUserFromToken(data);
+      
+      // Redirigir a la página principal
       navigate('/');
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
