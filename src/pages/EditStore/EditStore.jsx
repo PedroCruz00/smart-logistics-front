@@ -60,7 +60,9 @@ function EditStore() {
   const [isGenerateId, setIsGenerateId] = useState(true);
 
   // Verificar que la URL del backend existe
-  const backendUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
+  const backendUrl =
+    process.env.REACT_APP_BACKEND_URL || "http://localhost:8080";
+  const apiUrl = process.env.REACT_APP_API_URL || `${backendUrl}/api`;
 
   // Verificar autenticación al cargar
   useEffect(() => {
@@ -74,7 +76,7 @@ function EditStore() {
     const fetchStoreDetails = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${backendUrl}/api/almacenes/${id}`, {
+        const response = await fetch(`${apiUrl}/almacenes/${id}`, {
           headers: createAuthHeaders(),
         });
 
@@ -95,13 +97,13 @@ function EditStore() {
     };
 
     fetchStoreDetails();
-  }, [id, backendUrl, navigate]);
+  }, [id, apiUrl, navigate]);
 
   // Cargar productos
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/api/master-data/products`, {
+      const response = await fetch(`${apiUrl}/master-data/products`, {
         headers: createAuthHeaders(),
       });
 
@@ -131,12 +133,9 @@ function EditStore() {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `${backendUrl}/api/almacenes/${id}/productos`,
-        {
-          headers: createAuthHeaders(),
-        }
-      );
+      const response = await fetch(`${apiUrl}/almacenes/${id}/productos`, {
+        headers: createAuthHeaders(),
+      });
 
       if (!response.ok) {
         throw new Error(`Error fetching store products: ${response.status}`);
@@ -249,7 +248,7 @@ function EditStore() {
 
       console.log("Creando producto:", productToCreate);
 
-      const response = await fetch(`${backendUrl}/api/master-data/products`, {
+      const response = await fetch(`${apiUrl}/master-data/products`, {
         method: "POST",
         headers: createAuthHeaders(),
         body: JSON.stringify(productToCreate),
@@ -296,7 +295,7 @@ function EditStore() {
 
       // Actualizar nombre
       await fetch(
-        `${backendUrl}/api/master-data/products/${productId}/name?name=${encodeURIComponent(
+        `${apiUrl}/master-data/products/${productId}/name?name=${encodeURIComponent(
           productForm.name
         )}`,
         {
@@ -307,7 +306,7 @@ function EditStore() {
 
       // Actualizar categoría
       await fetch(
-        `${backendUrl}/api/master-data/products/${productId}/category?category=${encodeURIComponent(
+        `${apiUrl}/master-data/products/${productId}/category?category=${encodeURIComponent(
           productForm.category
         )}`,
         {
@@ -318,7 +317,7 @@ function EditStore() {
 
       // Actualizar precio
       await fetch(
-        `${backendUrl}/api/master-data/products/${productId}/price?price=${productForm.price}`,
+        `${apiUrl}/master-data/products/${productId}/price?price=${productForm.price}`,
         {
           method: "PUT",
           headers: createAuthHeaders(),
@@ -327,7 +326,7 @@ function EditStore() {
 
       // Actualizar stock
       await fetch(
-        `${backendUrl}/api/master-data/products/${productId}/stock?stock=${productForm.stock}`,
+        `${apiUrl}/master-data/products/${productId}/stock?stock=${productForm.stock}`,
         {
           method: "PUT",
           headers: createAuthHeaders(),
@@ -354,7 +353,7 @@ function EditStore() {
       console.log(`Actualizando ${attribute}:`, productId, value);
 
       const response = await fetch(
-        `${backendUrl}/api/master-data/products/${productId}/${attribute}?${attribute}=${encodeURIComponent(
+        `${apiUrl}/master-data/products/${productId}/${attribute}?${attribute}=${encodeURIComponent(
           value
         )}`,
         {
@@ -388,7 +387,7 @@ function EditStore() {
       console.log("Eliminando producto:", selectedProduct.id);
 
       const response = await fetch(
-        `${backendUrl}/api/master-data/products/${selectedProduct.id}`,
+        `${apiUrl}/master-data/products/${selectedProduct.id}`,
         {
           method: "DELETE",
           headers: createAuthHeaders(),
@@ -420,12 +419,11 @@ function EditStore() {
       // Si ya existe el almacén, actualizarlo
       if (id) {
         // Implementar la lógica para actualizar el almacén
-        // Aquí deberías hacer una llamada PUT al endpoint correcto
         // Por ahora solo mostramos alerta
         alert(`Store ${id} has been updated!`);
       } else {
         // Crear un nuevo almacén
-        const response = await fetch(`${backendUrl}/api/almacenes`, {
+        const response = await fetch(`${apiUrl}/almacenes`, {
           method: "POST",
           headers: createAuthHeaders(),
           body: JSON.stringify({
@@ -451,9 +449,15 @@ function EditStore() {
   const handleDeleteStore = async () => {
     try {
       // Implementar la lógica para eliminar el almacén
-      // Aquí deberías hacer una llamada DELETE al endpoint correcto
+      const response = await fetch(`${apiUrl}/almacenes/${id}`, {
+        method: "DELETE",
+        headers: createAuthHeaders(),
+      });
 
-      // Por ahora solo mostramos alerta
+      if (!response.ok) {
+        throw new Error(`Error deleting store: ${response.status}`);
+      }
+
       alert(`Store ${id} has been deleted!`);
       navigate("/almacen");
     } catch (err) {
