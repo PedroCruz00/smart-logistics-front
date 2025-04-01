@@ -50,7 +50,7 @@ function Navbar() {
                 Management
               </Link>
             </li>
-            {user && user.role === "superadmin" && (
+            {user && user.role === "user" && (
               <li className="nav-item">
                 <Link
                   className={`nav-link ${isActive("/settings")}`}
@@ -63,7 +63,9 @@ function Navbar() {
           </ul>
           <div className="d-flex align-items-center">
             <span className="navbar-text me-3">
-              {user ? `${user.name || user.displayName} (${user.role})` : "Cargando..."}
+              {user
+                ? `${user.name || user.displayName} (${user.role})`
+                : "Cargando..."}
             </span>
             <button className="btn btn-outline-danger" onClick={handleLogout}>
               Cerrar Sesión
