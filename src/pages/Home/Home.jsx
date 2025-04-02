@@ -8,24 +8,6 @@ import { getStoredData } from "../../data/getMasterData";
 import "./Home.css";
 import { v4 as uuidv4 } from "uuid";
 
-// Función para construir el contenido del marcador
-const buildMarkerContent = (warehouse) => {
-  const content = document.createElement("div");
-  content.className = "warehouse-marker";
-  content.innerHTML = `
-    <div class="warehouse-info">
-      <div class="icon">
-        <i aria-hidden="true" class="fa fa-warehouse" title="warehouse"></i>
-      </div>
-      <div class="details">
-        <div class="name">${warehouse.name || 'Nuevo Almacén'}</div>
-        <div class="location">${warehouse.location || 'Sin ubicación'}</div>
-      </div>
-    </div>
-  `;
-  return content;
-};
-
 function Home() {
   // Estado para la opción de cargar productos ("Sí" o "No")
   const [selectedOption, setSelectedOption] = useState("No");
@@ -114,9 +96,9 @@ function Home() {
   // Función para manejar el movimiento del mapa
   const handleMapDrag = (map) => {
     const center = map.getCenter();
-    setMapCenter({ 
-      lat: center.lat(), 
-      lng: center.lng() 
+    setMapCenter({
+      lat: center.lat(),
+      lng: center.lng(),
     });
   };
 
@@ -190,13 +172,6 @@ function Home() {
     backgroundColor: "#f5f5f5",
   };
 
-  // Estilos CSS en línea para el marcador
-  const markerStyle = {
-    fontSize: '24px',
-    color: '#3498db',
-    cursor: 'pointer',
-    filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))',
-  };
 
   return (
     <div className="home-container">
@@ -277,7 +252,9 @@ function Home() {
                     defaultCenter={mapCenter}
                     defaultZoom={15}
                     gestureHandling="greedy"
-                    mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || "default-map-id"}
+                    mapId={
+                      process.env.REACT_APP_GOOGLE_MAPS_ID || "default-map-id"
+                    }
                     onDragEnd={(map) => handleMapDrag(map)}
                     onClick={handleMapClick}
                   >
@@ -298,8 +275,12 @@ function Home() {
               </APIProvider>
             ) : (
               <div style={containerStyle}>
-                <p>No se puede cargar el mapa: Falta la clave API de Google Maps</p>
-                <p>Configura REACT_APP_GOOGLE_MAPS_API_KEY en el archivo .env</p>
+                <p>
+                  No se puede cargar el mapa: Falta la clave API de Google Maps
+                </p>
+                <p>
+                  Configura REACT_APP_GOOGLE_MAPS_API_KEY en el archivo .env
+                </p>
               </div>
             )}
           </div>
