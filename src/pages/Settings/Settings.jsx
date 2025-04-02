@@ -227,25 +227,24 @@ function Settings() {
         <div className="settings-form-container">
           <div className="settings-form">
             <Input
+              id="percentage"
               label="Porcentaje"
               value={settings.percentage}
               onChange={(e) =>
                 setSettings({ ...settings, percentage: e.target.value })
               }
-              icon="percent"
-              placeholder="Introduce el porcentaje"
               type="number"
+              placeholder="Introduce el porcentaje"
             />
             <Input
+              id="minDistance"
               label="Distancia mínima"
               value={settings.minDistance}
               onChange={(e) =>
                 setSettings({ ...settings, minDistance: e.target.value })
               }
-              icon="ruler"
-              placeholder="Introduce la distancia mínima"
               type="number"
-              unit="m"
+              placeholder="Introduce la distancia mínima"
             />
 
             <div className="settings-actions">

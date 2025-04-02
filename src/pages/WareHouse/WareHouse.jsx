@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { APIProvider, Map, Marker } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import './WareHouse.css';
 
 function WareHouse() {
@@ -54,9 +54,9 @@ function WareHouse() {
               <Map
                 defaultCenter={warehouseData.location}
                 defaultZoom={15}
-                style={{ width: '100%', height: '100%' }}
+                mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || 'default-map-id'}
               >
-                <Marker position={warehouseData.location} />
+                <AdvancedMarker position={warehouseData.location} />
               </Map>
             </div>
           </APIProvider>

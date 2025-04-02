@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import Input from "../../components/input/Input";
 import InputDD from "../../components/input/InputDD";
 import Modal from "../../components/modal/Modal";
@@ -193,34 +193,38 @@ function Home() {
 
             <label htmlFor="storeName">Nombre de la tienda:</label>
             <Input
-              className="input"
               id="storeName"
+              type="text"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
+              placeholder="Ingrese el nombre de la tienda"
             />
 
             <label htmlFor="location">Ubicación:</label>
             <Input
-              className="input"
               id="location"
+              type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
+              placeholder="Ingrese la ubicación"
             />
 
             <label htmlFor="latitude">Latitud:</label>
             <Input
-              className="input"
               id="latitude"
+              type="text"
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
+              placeholder="Ingrese la latitud"
             />
 
             <label htmlFor="longitude">Longitud:</label>
             <Input
-              className="input"
               id="longitude"
+              type="text"
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
+              placeholder="Ingrese la longitud"
             />
 
             <label htmlFor="dropdown">¿Cargar productos precargados?</label>
@@ -256,9 +260,9 @@ function Home() {
                     defaultCenter={mapCenter}
                     center={mapCenter}
                     defaultZoom={15}
-                    style={{ width: "100%", height: "100%" }}
+                    mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || 'default-map-id'}
                   >
-                    <Marker
+                    <AdvancedMarker
                       position={mapCenter}
                       draggable={true}
                       onDragEnd={handleMarkerDrag}
