@@ -1,3 +1,7 @@
+:root {
+  --warehouse-color: #558B2F;
+}
+
 .home-container {
   padding: 20px;
   max-width: 1200px;
@@ -13,17 +17,17 @@
 
 .create-store-layout {
   display: flex;
-  gap: 20px;
+  gap: 30px;  /* Aumentado el espacio entre el formulario y el mapa */
   min-height: 500px;
 }
 
 /* Sección del formulario (izquierda) */
 .form-section {
-  flex: 1;  /* El formulario ocupa una parte */
+  flex: 2;  /* Cambiado de 1 a 2 para dar más espacio al formulario */
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 15px;
+  padding: 25px;  /* Aumentado el padding */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -32,7 +36,8 @@
 .form-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;  /* Aumentado el espacio entre elementos */
+  width: 100%;  /* Asegurar que use todo el ancho disponible */
 }
 
 .form-content h3 {
@@ -49,8 +54,9 @@
 }
 
 .input {
-  padding: 8px;
-  font-size: 0.9rem;
+  width: 100%;  /* El input usará todo el ancho disponible */
+  padding: 10px;  /* Aumentado el padding */
+  font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
@@ -90,7 +96,7 @@ button:disabled {
 
 /* Sección del mapa (derecha) */
 .map-section {
-  flex: 3;  /* El mapa ahora ocupa tres partes (más ancho que antes) */
+  flex: 3;  /* Mantenemos la proporción del mapa */
   display: flex;
   flex-direction: column;
 }
@@ -132,4 +138,43 @@ button:disabled {
   .map-container {
     min-height: 300px;
   }
+}
+
+/* Estilos para el marcador de propiedad */
+.property {
+  align-items: center;
+  background-color: var(--warehouse-color);
+  border-radius: 50%;
+  color: #FFFFFF;
+  display: flex;
+  font-size: 14px;
+  gap: 15px;
+  height: 30px;
+  justify-content: center;
+  padding: 4px;
+  position: relative;
+  transition: all 0.3s ease-out;
+  width: 30px;
+}
+
+.property::after {
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 9px solid var(--warehouse-color);
+  content: "";
+  height: 0;
+  left: 50%;
+  position: absolute;
+  top: 95%;
+  transform: translate(-50%, 0);
+  transition: all 0.3s ease-out;
+  width: 0;
+  z-index: 1;
+}
+
+.property .icon {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  color: #FFFFFF;
 }

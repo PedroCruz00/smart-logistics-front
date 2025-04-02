@@ -1,14 +1,18 @@
 // Función para obtener los datos desde localStorage
 function getStoredData() {
-  const data = localStorage.getItem("products");
-  if (data) {
-    return JSON.parse(data);
-  } else {
-    console.log("No se encontraron datos en localStorage");
+  try {
+    const data = localStorage.getItem("products");
+    if (data) {
+      return JSON.parse(data);
+    } else {
+      console.info("No hay productos guardados en localStorage");
+      return [];
+    }
+  } catch (error) {
+    console.error("Error al obtener datos de localStorage:", error);
     return [];
   }
 }
 
-// Ejemplo de cómo puedes acceder a los datos
-const products = getStoredData();
-console.log("Productos desde localStorage:", products);
+// Exportar la función para usarla en otros componentes
+export { getStoredData };
