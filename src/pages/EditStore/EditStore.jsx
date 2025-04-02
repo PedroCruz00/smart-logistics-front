@@ -30,16 +30,13 @@ const redirectIfNotAuthenticated = (navigate) => {
   return true;
 };
 
-function EditStore() {
+function ManageStore() {
   const { id } = useParams(); // Recibe el ID del almacén de la URL
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("edit");
+  const [activeTab, setActiveTab] = useState("products");
 
   // Estado para almacenar la información del almacén
   const [store, setStore] = useState(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-
   const [products, setProducts] = useState([]);
   const [storeProducts, setStoreProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,8 +83,6 @@ function EditStore() {
 
         const data = await response.json();
         setStore(data);
-        setTitle(data.name || "");
-        setDescription(data.location || "");
         setLoading(false);
       } catch (err) {
         console.error("Error fetching store details:", err);
@@ -99,7 +94,7 @@ function EditStore() {
     fetchStoreDetails();
   }, [id, apiUrl, navigate]);
 
-  // Cargar productos
+  // Cargar productos maestros
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -121,7 +116,7 @@ function EditStore() {
       }
     } catch (err) {
       console.error("Error fetching products:", err);
-      setError("Failed to load products. Please try again.");
+      setError("No se pudieron cargar los productos. Intente nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -150,7 +145,9 @@ function EditStore() {
       }
     } catch (err) {
       console.error("Error fetching store products:", err);
-      setError("Failed to load store products. Please try again.");
+      setError(
+        "No se pudieron cargar los productos del almacén. Intente nuevamente."
+      );
     } finally {
       setLoading(false);
     }
@@ -411,44 +408,15 @@ function EditStore() {
     }
   };
 
-  // Manejar el submit del formulario de la tienda
-  const handleSubmitStore = async (e) => {
-    e.preventDefault();
-
-    try {
-      // Si ya existe el almacén, actualizarlo
-      if (id) {
-        // Implementar la lógica para actualizar el almacén
-        // Por ahora solo mostramos alerta
-        alert(`Store ${id} has been updated!`);
-      } else {
-        // Crear un nuevo almacén
-        const response = await fetch(`${apiUrl}/almacenes`, {
-          method: "POST",
-          headers: createAuthHeaders(),
-          body: JSON.stringify({
-            name: title,
-            location: description, // Asumiendo que description se usa como location
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error creating store: ${response.status}`);
-        }
-
-        alert("Store created successfully!");
-        navigate("/almacen");
-      }
-    } catch (err) {
-      console.error("Error saving store:", err);
-      setError("Error al guardar la tienda. Por favor intente nuevamente.");
-    }
-  };
-
   // Manejar la eliminación de la tienda
   const handleDeleteStore = async () => {
     try {
-      // Implementar la lógica para eliminar el almacén
+      const confirmation = window.confirm(
+        `¿Estás seguro de que deseas eliminar el almacén ${store.name}?`
+      );
+
+      if (!confirmation) return;
+
       const response = await fetch(`${apiUrl}/almacenes/${id}`, {
         method: "DELETE",
         headers: createAuthHeaders(),
@@ -458,11 +426,11 @@ function EditStore() {
         throw new Error(`Error deleting store: ${response.status}`);
       }
 
-      alert(`Store ${id} has been deleted!`);
+      alert(`Almacén ${store.name} ha sido eliminado exitosamente.`);
       navigate("/almacen");
     } catch (err) {
       console.error("Error deleting store:", err);
-      setError("Error al eliminar la tienda. Por favor intente nuevamente.");
+      setError("Error al eliminar el almacén. Por favor intente nuevamente.");
     }
   };
 
@@ -531,16 +499,32 @@ function EditStore() {
     }
   };
 
-  if (loading) {
-    return <div className="loading">Cargando información del almacén...</div>;
+  if (loading && !store) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Cargando información del almacén...</p>
+      </div>
+    );
   }
 
   if (error && !store) {
-    return <div className="error-container">{error}</div>;
+    return (
+      <div className="error-container">
+        <h2>Error</h2>
+        <p>{error}</p>
+        <Button onClick={() => navigate("/almacen")}>Volver a almacenes</Button>
+      </div>
+    );
   }
 
   if (!store && !loading) {
-    return <h1>Almacén no encontrado</h1>;
+    return (
+      <div className="not-found-container">
+        <h1>Almacén no encontrado</h1>
+        <Button onClick={() => navigate("/almacen")}>Volver a almacenes</Button>
+      </div>
+    );
   }
 
   // Renderizado del formulario de producto
@@ -630,109 +614,141 @@ function EditStore() {
   );
 
   return (
-    <div className="edit-store-container">
-      <h1>Gestionar Almacén: {title}</h1>
+    <div className="manage-store-container">
+      <div className="store-header">
+        <h1>{store.name}</h1>
+        <p className="store-location">Ubicación: {store.location}</p>
+      </div>
 
       <div className="tabs">
-        <button
-          className={activeTab === "edit" ? "tab active" : "tab"}
-          onClick={() => setActiveTab("edit")}
-        >
-          Editar
-        </button>
-        <button
-          className={activeTab === "delete" ? "tab active" : "tab"}
-          onClick={() => setActiveTab("delete")}
-        >
-          Eliminar
-        </button>
         <button
           className={activeTab === "products" ? "tab active" : "tab"}
           onClick={() => setActiveTab("products")}
         >
           Productos
         </button>
+        <button
+          className={activeTab === "delete" ? "tab active" : "tab"}
+          onClick={() => setActiveTab("delete")}
+        >
+          Eliminar Almacén
+        </button>
       </div>
 
-      {activeTab === "edit" ? (
-        <form className="edit-store-form" onSubmit={handleSubmitStore}>
-          <div className="form-group">
-            <label htmlFor="title">Nombre:</label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="form-input"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="description">Ubicación:</label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="form-textarea"
-            />
-          </div>
-          <Button type="submit">Guardar</Button>
-        </form>
-      ) : activeTab === "delete" ? (
+      {activeTab === "delete" ? (
         <div className="delete-confirmation">
-          <p>
-            ¿Estás seguro de que deseas eliminar el almacén{" "}
-            <strong>{title}</strong>?
-          </p>
-          <Button onClick={handleDeleteStore} className="delete-button">
-            Eliminar
-          </Button>
+          <div className="alert alert-danger">
+            <h3>Confirmar Eliminación</h3>
+            <p>
+              ¿Estás seguro de que deseas eliminar el almacén{" "}
+              <strong>{store.name}</strong>?
+            </p>
+            <p className="warning-text">Esta acción no se puede deshacer.</p>
+            <div className="action-buttons">
+              <Button onClick={() => setActiveTab("products")}>Cancelar</Button>
+              <Button onClick={handleDeleteStore} className="delete-button">
+                Eliminar Almacén
+              </Button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="products-tab">
-          <h2>Gestión de Productos</h2>
-
-          {/* Modal para crear productos */}
-          <Modal
-            title="Crear Producto"
-            content={renderProductForm()}
-            buttonLabel="Crear Producto"
-            onConfirm={createProduct}
-            triggerButton={
-              <Button className="create-button" onClick={prepareCreateProduct}>
-                Crear Producto
-              </Button>
-            }
-            onClose={() => {
-              setProductForm({
-                id: "",
-                name: "",
-                category: "",
-                price: "",
-                stock: "",
-              });
-              setError(null);
-            }}
-          />
+          <div className="section-header">
+            <h2>Gestión de Productos</h2>
+            <Modal
+              title="Crear Producto"
+              content={renderProductForm()}
+              buttonLabel="Crear Producto"
+              onConfirm={createProduct}
+              triggerButton={
+                <Button
+                  className="create-button"
+                  onClick={prepareCreateProduct}
+                >
+                  + Nuevo Producto
+                </Button>
+              }
+              onClose={() => {
+                setProductForm({
+                  id: "",
+                  name: "",
+                  category: "",
+                  price: "",
+                  stock: "",
+                });
+                setError(null);
+              }}
+            />
+          </div>
 
           {error && <div className="error-message">{error}</div>}
 
-          {loading ? (
-            <p>Cargando productos...</p>
-          ) : (
-            <>
-              <h3>Todos los productos</h3>
-              <ul className="product-list">
-                {products.length === 0 ? (
-                  <p>No hay productos disponibles</p>
-                ) : (
-                  products.map((product) => (
-                    <li key={product.id} className="product-item">
-                      <div className="product-info">
-                        <span className="product-id">ID: {product.id}</span>
-                        <span className="product-name">
-                          Nombre: {product.name}
-                          <Button
-                            className="attribute-edit-button"
+          <div className="products-section">
+            <h3>Productos en este almacén</h3>
+            {loading ? (
+              <div className="loading-spinner-small"></div>
+            ) : storeProducts.length === 0 ? (
+              <div className="empty-state">
+                <p>No hay productos en este almacén</p>
+                <p className="suggestion-text">
+                  Puedes añadir productos desde el catálogo maestro.
+                </p>
+              </div>
+            ) : (
+              <div className="product-cards">
+                {storeProducts.map((product) => (
+                  <div key={product.id} className="product-card">
+                    <div className="product-card-header">
+                      <h4>{product.name}</h4>
+                      <span className="product-id">ID: {product.id}</span>
+                    </div>
+                    <div className="product-card-body">
+                      <p className="product-category">
+                        Categoría: {product.category}
+                      </p>
+                      <p className="product-price">
+                        Precio: ${product.price.toFixed(2)}
+                      </p>
+                      <p className="product-stock">
+                        Stock: {product.stock} unidades
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="products-section">
+            <h3>Catálogo Maestro de Productos</h3>
+            {loading ? (
+              <div className="loading-spinner-small"></div>
+            ) : products.length === 0 ? (
+              <div className="empty-state">
+                <p>No hay productos disponibles en el catálogo</p>
+              </div>
+            ) : (
+              <div className="table-responsive">
+                <table className="products-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nombre</th>
+                      <th>Categoría</th>
+                      <th>Precio</th>
+                      <th>Stock</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => (
+                      <tr key={product.id}>
+                        <td>{product.id}</td>
+                        <td>
+                          {product.name}
+                          <button
+                            className="action-button small"
                             onClick={() =>
                               promptForAttributeUpdate(
                                 product,
@@ -740,14 +756,15 @@ function EditStore() {
                                 product.name
                               )
                             }
+                            title="Editar nombre"
                           >
                             ✏️
-                          </Button>
-                        </span>
-                        <span className="product-category">
-                          Categoría: {product.category}
-                          <Button
-                            className="attribute-edit-button"
+                          </button>
+                        </td>
+                        <td>
+                          {product.category}
+                          <button
+                            className="action-button small"
                             onClick={() =>
                               promptForAttributeUpdate(
                                 product,
@@ -755,14 +772,15 @@ function EditStore() {
                                 product.category
                               )
                             }
+                            title="Editar categoría"
                           >
                             ✏️
-                          </Button>
-                        </span>
-                        <span className="product-price">
-                          Precio: ${product.price}
-                          <Button
-                            className="attribute-edit-button"
+                          </button>
+                        </td>
+                        <td>
+                          ${product.price.toFixed(2)}
+                          <button
+                            className="action-button small"
                             onClick={() =>
                               promptForAttributeUpdate(
                                 product,
@@ -770,14 +788,15 @@ function EditStore() {
                                 product.price
                               )
                             }
+                            title="Editar precio"
                           >
                             ✏️
-                          </Button>
-                        </span>
-                        <span className="product-stock">
-                          Stock: {product.stock}
-                          <Button
-                            className="attribute-edit-button"
+                          </button>
+                        </td>
+                        <td>
+                          {product.stock}
+                          <button
+                            className="action-button small"
                             onClick={() =>
                               promptForAttributeUpdate(
                                 product,
@@ -785,97 +804,81 @@ function EditStore() {
                                 product.stock
                               )
                             }
+                            title="Editar stock"
                           >
                             📊
-                          </Button>
-                        </span>
-                      </div>
-                      <div className="product-actions">
-                        {/* Modal para editar producto */}
-                        <Modal
-                          title="Editar Producto"
-                          content={renderProductForm()}
-                          buttonLabel="Guardar Cambios"
-                          onConfirm={updateProduct}
-                          triggerButton={
-                            <Button
-                              className="edit-button"
-                              onClick={() => prepareEditProduct(product)}
-                            >
-                              ✏️
-                            </Button>
-                          }
-                          onClose={() => {
-                            setSelectedProduct(null);
-                            setProductForm({
-                              id: "",
-                              name: "",
-                              category: "",
-                              price: "",
-                              stock: "",
-                            });
-                            setError(null);
-                          }}
-                        />
+                          </button>
+                        </td>
+                        <td>
+                          <div className="action-buttons">
+                            <Modal
+                              title="Editar Producto"
+                              content={renderProductForm()}
+                              buttonLabel="Guardar Cambios"
+                              onConfirm={updateProduct}
+                              triggerButton={
+                                <button
+                                  className="action-button"
+                                  onClick={() => prepareEditProduct(product)}
+                                  title="Editar producto"
+                                >
+                                  ✏️
+                                </button>
+                              }
+                              onClose={() => {
+                                setSelectedProduct(null);
+                                setProductForm({
+                                  id: "",
+                                  name: "",
+                                  category: "",
+                                  price: "",
+                                  stock: "",
+                                });
+                                setError(null);
+                              }}
+                            />
 
-                        {/* Modal para eliminar producto */}
-                        <Modal
-                          title="Eliminar Producto"
-                          content={`¿Estás seguro de que deseas eliminar el producto ${product.name}?`}
-                          buttonLabel="Eliminar"
-                          onConfirm={deleteProduct}
-                          triggerButton={
-                            <Button
-                              className="delete-button"
-                              onClick={() => prepareDeleteProduct(product)}
-                            >
-                              🗑️
-                            </Button>
-                          }
-                          onClose={() => {
-                            setSelectedProduct(null);
-                            setError(null);
-                          }}
-                        />
-                      </div>
-                    </li>
-                  ))
-                )}
-              </ul>
-
-              {/* Productos específicos del almacén */}
-              <h3>Productos en este almacén</h3>
-              <ul className="store-product-list">
-                {storeProducts.length === 0 ? (
-                  <p>No hay productos en este almacén</p>
-                ) : (
-                  storeProducts.map((product) => (
-                    <li key={product.id} className="product-item">
-                      <div className="product-info">
-                        <span className="product-id">ID: {product.id}</span>
-                        <span className="product-name">
-                          Nombre: {product.name}
-                        </span>
-                        <span className="product-category">
-                          Categoría: {product.category}
-                        </span>
-                        <span className="product-price">
-                          Precio: ${product.price}
-                        </span>
-                        <span className="product-stock">
-                          Stock: {product.stock}
-                        </span>
-                      </div>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </>
-          )}
+                            <Modal
+                              title="Eliminar Producto"
+                              content={`¿Estás seguro de que deseas eliminar el producto ${product.name}?`}
+                              buttonLabel="Eliminar"
+                              onConfirm={deleteProduct}
+                              triggerButton={
+                                <button
+                                  className="action-button delete"
+                                  onClick={() => prepareDeleteProduct(product)}
+                                  title="Eliminar producto"
+                                >
+                                  🗑️
+                                </button>
+                              }
+                              onClose={() => {
+                                setSelectedProduct(null);
+                                setError(null);
+                              }}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
+
+      <div className="bottom-navigation">
+        <Button
+          onClick={() => navigate("/management")}
+          className="secondary-button"
+        >
+          Volver a Almacenes
+        </Button>
+      </div>
     </div>
   );
 }
 
-export default EditStore;
+export default ManageStore;
