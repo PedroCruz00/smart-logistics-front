@@ -43,6 +43,10 @@ function Home() {
     lat: 5.551157,
     lng: -73.3572938,
   });
+  const [markerPosition, setMarkerPosition] = useState({
+    lat: 5.551157,
+    lng: -73.3572938,
+  });
 
   // Al iniciar, verificamos si la API key está disponible
   useEffect(() => {
@@ -104,7 +108,27 @@ function Home() {
 
     setLatitude(newLat.toFixed(6));
     setLongitude(newLng.toFixed(6));
-    setMapCenter({ lat: newLat, lng: newLng });
+    setMarkerPosition({ lat: newLat, lng: newLng });
+  };
+
+  // Función para manejar el movimiento del mapa
+  const handleMapDrag = (map) => {
+    const center = map.getCenter();
+    setMapCenter({ 
+      lat: center.lat(), 
+      lng: center.lng() 
+    });
+  };
+
+  // Función para manejar el clic en el mapa
+  const handleMapClick = (e) => {
+    // El evento contiene las coordenadas en e.detail
+    const newLat = e.detail.latLng.lat;
+    const newLng = e.detail.latLng.lng;
+
+    setLatitude(newLat.toFixed(6));
+    setLongitude(newLng.toFixed(6));
+    setMarkerPosition({ lat: newLat, lng: newLng });
   };
 
   // Función para enviar los datos del almacén junto con los productos
@@ -143,14 +167,14 @@ function Home() {
       );
 
       if (!response.ok) {
-        throw new Error(`Error al crear tienda: ${response.statusText}`);
+        throw new Error(`Error al crear Almacén: ${response.statusText}`);
       }
 
       const data = await response.json();
       setSuccessModalOpen(true);
-      console.log("Tienda creada:", data);
+      console.log("Almacén creado:", data);
     } catch (err) {
-      setError("No se pudo crear la tienda. Intenta nuevamente.");
+      setError("No se pudo crear el Almacén. Intenta nuevamente.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -176,21 +200,21 @@ function Home() {
 
   return (
     <div className="home-container">
-      <h2>Crear Nueva Tienda</h2>
+      <h2>Crear Nuevo Almacén</h2>
 
       <div className="create-store-layout">
-        {/* Formulario de creación de tienda */}
+        {/* Formulario de creación de Almacén */}
         <div className="form-section">
           <div className="form-content">
-            <h3>Información de la Tienda</h3>
+            <h3>Información del Almacén</h3>
 
-            <label htmlFor="storeName">Nombre de la tienda:</label>
+            <label htmlFor="storeName">Nombre del Almacén:</label>
             <Input
               id="storeName"
               type="text"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
-              placeholder="Ingrese el nombre de la tienda"
+              placeholder="Ingrese el nombre de la Almacén"
             />
 
             <label htmlFor="location">Ubicación:</label>
@@ -232,7 +256,7 @@ function Home() {
             </div>
 
             <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? "Cargando..." : "Crear tienda"}
+              {loading ? "Cargando..." : "Crear Almacén"}
             </Button>
 
             {error && <p className="error">{error}</p>}
@@ -251,12 +275,14 @@ function Home() {
                 <div style={containerStyle}>
                   <Map
                     defaultCenter={mapCenter}
-                    center={mapCenter}
                     defaultZoom={15}
+                    gestureHandling="greedy"
                     mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || "default-map-id"}
+                    onDragEnd={(map) => handleMapDrag(map)}
+                    onClick={handleMapClick}
                   >
                     <AdvancedMarker
-                      position={mapCenter}
+                      position={markerPosition}
                       draggable={true}
                       onDragEnd={handleMarkerDrag}
                       title="Arrastrar para ubicar el almacén"
@@ -298,8 +324,8 @@ function Home() {
 
       {/* Modal de éxito */}
       <Modal
-        title="Tienda Creada"
-        content="¡La tienda ha sido creada exitosamente!"
+        title="Almacén creado"
+        content="¡el Almacén ha sido creado exitosamente!"
         buttonLabel="Aceptar"
         onConfirm={() => {
           setSuccessModalOpen(false);
