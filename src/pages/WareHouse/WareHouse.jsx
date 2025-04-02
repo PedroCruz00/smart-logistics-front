@@ -9,6 +9,7 @@ function WareHouse() {
   const navigate = useNavigate();
   const [apiKeyAvailable, setApiKeyAvailable] = useState(false);
   const [warehouse, setWarehouse] = useState(null);
+  const [allWarehouses, setAllWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,43 +21,63 @@ function WareHouse() {
       console.error("Google Maps API key not found in environment variables");
     }
 
-    // Cargar datos del almacén
-    const fetchWarehouseData = async () => {
+    // Cargar datos del almacén actual y todos los almacenes
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("authToken");
         if (!token) throw new Error("No hay token de autenticación");
 
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/almacenes/${id}`, {
+        // Obtener el almacén actual
+        const warehouseResponse = await fetch(`${process.env.REACT_APP_API_URL}/almacenes/${id}`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (!response.ok) {
-          throw new Error(`Error al obtener datos del almacén: ${response.status}`);
+        if (!warehouseResponse.ok) {
+          throw new Error(`Error al obtener datos del almacén: ${warehouseResponse.status}`);
         }
 
-        const data = await response.json();
-        console.log('Datos del almacén recibidos:', data);
-        setWarehouse(data);
+        const warehouseData = await warehouseResponse.json();
+        setWarehouse(warehouseData);
+
+        // Obtener todos los almacenes
+        const allWarehousesResponse = await fetch(`${process.env.REACT_APP_API_URL}/almacenes`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!allWarehousesResponse.ok) {
+          throw new Error(`Error al obtener todos los almacenes: ${allWarehousesResponse.status}`);
+        }
+
+        const allWarehousesData = await allWarehousesResponse.json();
+        setAllWarehouses(Array.isArray(allWarehousesData) ? allWarehousesData : [allWarehousesData]);
       } catch (err) {
-        console.error('Error fetching warehouse:', err);
+        console.error('Error fetching data:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWarehouseData();
+    fetchData();
   }, [id]);
 
   const containerStyle = {
     width: '100%',
-    height: '100%', // Cambiado de 400px a 100%
+    height: '100%',
     border: '1px solid #ccc',
     borderRadius: '8px',
     overflow: 'hidden'
+  };
+
+  // Función para navegar a un almacén específico
+  const handleWarehouseClick = (warehouseId) => {
+    navigate(`/warehouse/${warehouseId}`);
   };
 
   if (loading) {
@@ -143,18 +164,24 @@ function WareHouse() {
                     defaultZoom={15}
                     mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || 'default-map-id'}
                   >
-                    <AdvancedMarker
-                      position={{
-                        lat: warehouse.coordinates.latitude,
-                        lng: warehouse.coordinates.longitude
-                      }}
-                    >
-                      <div className="property">
-                        <div className="icon">
-                          <i className="fas fa-warehouse"></i>
+                    {/* Mostrar todos los almacenes */}
+                    {allWarehouses.map((wh) => (
+                      <AdvancedMarker
+                        key={wh.id}
+                        position={{
+                          lat: wh.coordinates.latitude,
+                          lng: wh.coordinates.longitude
+                        }}
+                        onClick={() => handleWarehouseClick(wh.id)}
+                        title={wh.name}
+                      >
+                        <div className={`property ${wh.id === warehouse.id ? 'current' : ''}`}>
+                          <div className="icon">
+                            <i className="fas fa-warehouse"></i>
+                          </div>
                         </div>
-                      </div>
-                    </AdvancedMarker>
+                      </AdvancedMarker>
+                    ))}
                   </Map>
                 </div>
               </APIProvider>

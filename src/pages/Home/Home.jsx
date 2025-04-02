@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
+import { useNavigate } from "react-router-dom";
 import Input from "../../components/input/Input";
 import InputDD from "../../components/input/InputDD";
 import Modal from "../../components/modal/Modal";
@@ -9,7 +10,7 @@ import "./Home.css";
 import { v4 as uuidv4 } from "uuid";
 
 function Home() {
-  // Estado para la opción de cargar productos ("Sí" o "No")
+  const navigate = useNavigate();
   const [selectedOption, setSelectedOption] = useState("No");
   const [storeName, setStoreName] = useState("");
   const [location, setLocation] = useState("");
@@ -21,6 +22,7 @@ function Home() {
   const [loadProductsModalOpen, setLoadProductsModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [apiKeyAvailable, setApiKeyAvailable] = useState(false);
+  const [existingWarehouses, setExistingWarehouses] = useState([]);
   const [mapCenter, setMapCenter] = useState({
     lat: 5.551157,
     lng: -73.3572938,
@@ -30,14 +32,39 @@ function Home() {
     lng: -73.3572938,
   });
 
-  // Al iniciar, verificamos si la API key está disponible
+  // Al iniciar, verificamos si la API key está disponible y cargamos los almacenes existentes
   useEffect(() => {
-    // Check if API key is available
     if (process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
       setApiKeyAvailable(true);
     } else {
       console.error("Google Maps API key not found in environment variables");
     }
+
+    // Cargar almacenes existentes
+    const fetchExistingWarehouses = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No hay token de autenticación");
+
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/almacenes`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error al obtener almacenes: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setExistingWarehouses(Array.isArray(data) ? data : [data]);
+      } catch (err) {
+        console.error("Error fetching warehouses:", err);
+      }
+    };
+
+    fetchExistingWarehouses();
 
     // Cargar los datos del JSON solo si existen
     const storeData = getStoredData();
@@ -104,13 +131,17 @@ function Home() {
 
   // Función para manejar el clic en el mapa
   const handleMapClick = (e) => {
-    // El evento contiene las coordenadas en e.detail
     const newLat = e.detail.latLng.lat;
     const newLng = e.detail.latLng.lng;
 
     setLatitude(newLat.toFixed(6));
     setLongitude(newLng.toFixed(6));
     setMarkerPosition({ lat: newLat, lng: newLng });
+  };
+
+  // Función para navegar a un almacén existente
+  const handleWarehouseClick = (warehouseId) => {
+    navigate(`/warehouse/${warehouseId}`);
   };
 
   // Modificar handleSubmit para incluir la descripción
@@ -158,6 +189,9 @@ function Home() {
       const data = await response.json();
       setSuccessModalOpen(true);
       console.log("Almacén creado:", data);
+
+      // Actualizar la lista de almacenes existentes
+      setExistingWarehouses(prev => [...prev, data]);
     } catch (err) {
       setError("No se pudo crear el Almacén. Intenta nuevamente.");
       console.error(err);
@@ -174,7 +208,6 @@ function Home() {
     overflow: "hidden",
     backgroundColor: "#f5f5f5",
   };
-
 
   return (
     <div className="home-container">
@@ -255,21 +288,39 @@ function Home() {
                     defaultCenter={mapCenter}
                     defaultZoom={15}
                     gestureHandling="greedy"
-                    mapId={
-                      process.env.REACT_APP_GOOGLE_MAPS_ID || "default-map-id"
-                    }
+                    mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || "default-map-id"}
                     onDragEnd={(map) => handleMapDrag(map)}
                     onClick={handleMapClick}
                   >
+                    {/* Mostrar los almacenes existentes */}
+                    {existingWarehouses.map((warehouse) => (
+                      <AdvancedMarker
+                        key={warehouse.id}
+                        position={{
+                          lat: warehouse.coordinates.latitude,
+                          lng: warehouse.coordinates.longitude
+                        }}
+                        onClick={() => handleWarehouseClick(warehouse.id)}
+                        title={warehouse.name}
+                      >
+                        <div className="property existing">
+                          <div className="icon">
+                            <i className="fas fa-warehouse"></i>
+                          </div>
+                        </div>
+                      </AdvancedMarker>
+                    ))}
+
+                    {/* Marcador del nuevo almacén */}
                     <AdvancedMarker
                       position={markerPosition}
                       draggable={true}
                       onDragEnd={handleMarkerDrag}
-                      title="Arrastrar para ubicar el almacén"
+                      title="Ubicación del nuevo almacén"
                     >
-                      <div className="property">
+                      <div className="property new">
                         <div className="icon">
-                          <i className="fas fa-warehouse"></i>
+                          <i className="fas fa-plus"></i>
                         </div>
                       </div>
                     </AdvancedMarker>
