@@ -6,7 +6,25 @@ import Modal from "../../components/modal/Modal";
 import Button from "../../components/button/Button";
 import { getStoredData } from "../../data/getMasterData";
 import "./Home.css";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
+
+// Función para construir el contenido del marcador
+const buildMarkerContent = (warehouse) => {
+  const content = document.createElement("div");
+  content.className = "warehouse-marker";
+  content.innerHTML = `
+    <div class="warehouse-info">
+      <div class="icon">
+        <i aria-hidden="true" class="fa fa-warehouse" title="warehouse"></i>
+      </div>
+      <div class="details">
+        <div class="name">${warehouse.name || 'Nuevo Almacén'}</div>
+        <div class="location">${warehouse.location || 'Sin ubicación'}</div>
+      </div>
+    </div>
+  `;
+  return content;
+};
 
 function Home() {
   // Estado para la opción de cargar productos ("Sí" o "No")
@@ -21,7 +39,10 @@ function Home() {
   const [loadProductsModalOpen, setLoadProductsModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [apiKeyAvailable, setApiKeyAvailable] = useState(false);
-  const [mapCenter, setMapCenter] = useState({ lat: 5.551157, lng: -73.3572938 });
+  const [mapCenter, setMapCenter] = useState({
+    lat: 5.551157,
+    lng: -73.3572938,
+  });
 
   // Al iniciar, verificamos si la API key está disponible
   useEffect(() => {
@@ -34,7 +55,7 @@ function Home() {
 
     // Cargar los datos del JSON solo si existen
     const storeData = getStoredData();
-    if (storeData && typeof storeData === 'object' && storeData.coordinates) {
+    if (storeData && typeof storeData === "object" && storeData.coordinates) {
       if (!storeData.id) {
         storeData.id = uuidv4();
       }
@@ -145,6 +166,14 @@ function Home() {
     backgroundColor: "#f5f5f5",
   };
 
+  // Estilos CSS en línea para el marcador
+  const markerStyle = {
+    fontSize: '24px',
+    color: '#3498db',
+    cursor: 'pointer',
+    filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))',
+  };
+
   return (
     <div className="home-container">
       <h2>Crear Nueva Tienda</h2>
@@ -224,24 +253,27 @@ function Home() {
                     defaultCenter={mapCenter}
                     center={mapCenter}
                     defaultZoom={15}
-                    mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || 'default-map-id'}
+                    mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || "default-map-id"}
                   >
                     <AdvancedMarker
                       position={mapCenter}
                       draggable={true}
                       onDragEnd={handleMarkerDrag}
-                    />
+                      title="Arrastrar para ubicar el almacén"
+                    >
+                      <div className="property">
+                        <div className="icon">
+                          <i className="fas fa-warehouse"></i>
+                        </div>
+                      </div>
+                    </AdvancedMarker>
                   </Map>
                 </div>
               </APIProvider>
             ) : (
               <div style={containerStyle}>
-                <p>
-                  No se puede cargar el mapa: Falta la clave API de Google Maps
-                </p>
-                <p>
-                  Configura REACT_APP_GOOGLE_MAPS_API_KEY en el archivo .env
-                </p>
+                <p>No se puede cargar el mapa: Falta la clave API de Google Maps</p>
+                <p>Configura REACT_APP_GOOGLE_MAPS_API_KEY en el archivo .env</p>
               </div>
             )}
           </div>
