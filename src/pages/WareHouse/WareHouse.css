@@ -1,21 +1,214 @@
 .warehouse-detail-container {
   padding: 20px;
-  max-width: 900px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.warehouse-info {
+.warehouse-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.map-container {
+.warehouse-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 24px;
+}
+
+/* Layout de dos columnas */
+.warehouse-content {
+  display: flex;
+  gap: 30px;
+  min-height: calc(100vh - 200px);
+}
+
+.warehouse-info-side {
+  flex: 0.8; /* Reducido de 1 a 0.8 para dar más espacio al mapa */
+  max-width: 40%; /* Reducido de 50% a 40% */
+}
+
+.warehouse-map-side {
+  flex: 1.2; /* Aumentado de 1 a 1.2 para dar más espacio al mapa */
+  position: sticky;
+  top: 20px;
+  height: calc(100vh - 140px);
+}
+
+.info-section {
+  background: white;
   border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
+.info-section h3 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-item label {
+  font-weight: bold;
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.info-item span {
+  color: #2c3e50;
+  font-size: 16px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.product-item {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+.product-item h4 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 16px;
+}
+
+.product-item p {
+  margin: 5px 0;
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.map-section {
+  height: calc(100vh - 200px);  /* Altura calculada restando header y margen */
+  min-height: 400px;  /* Altura mínima */
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-section h3 {
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+/* El contenedor del mapa debe ocupar todo el espacio restante */
+.map-section > div {
+  flex: 1;
+  position: relative;
+}
+
+/* Estados de carga y error */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #e74c3c;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .map-container {
-    height: 300px;
+  .warehouse-content {
+    flex-direction: column;
   }
+
+  .warehouse-info-side,
+  .warehouse-map-side {
+    max-width: 100%;
+  }
+
+  .warehouse-map-side {
+    height: 400px;
+    position: static;
+  }
+}
+
+.property {
+  align-items: center;
+  background-color: var(--warehouse-color);
+  border-radius: 50%;
+  color: #FFFFFF;
+  display: flex;
+  font-size: 14px;
+  gap: 15px;
+  height: 30px;
+  justify-content: center;
+  padding: 4px;
+  position: relative;
+  transition: all 0.3s ease-out;
+  width: 30px;
+  cursor: pointer;
+}
+
+.property.current {
+  background-color: #e74c3c;
+  transform: scale(1.2);
+  z-index: 2;
+}
+
+.property:hover {
+  transform: scale(1.1);
+}
+
+.property.current:hover {
+  transform: scale(1.3);
+}
+
+.property::after {
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 9px solid var(--warehouse-color);
+  content: "";
+  height: 0;
+  left: 50%;
+  position: absolute;
+  top: 95%;
+  transform: translate(-50%, 0);
+  transition: all 0.3s ease-out;
+  width: 0;
+  z-index: 1;
+}
+
+.property.current::after {
+  border-top-color: #e74c3c;
+}
+
+.property .icon {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  color: #FFFFFF;
 }

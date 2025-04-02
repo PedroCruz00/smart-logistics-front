@@ -1,9 +1,10 @@
 .form-control {
-  display: inline-block;
-  width: 50%;
-  padding: 0.3rem;
+  display: block;  /* Cambiado de inline-block a block */
+  width: 100%;    /* Cambiado de 50% a 100% */
+  padding: 0.5rem 0.8rem;  /* Ajustado el padding */
   border: 1px solid #ccc;
-  margin: 0.35rem;
+  margin: 0.35rem 0;  /* Ajustado el margen */
   font-size: 16px;
   box-sizing: border-box;
+  border-radius: 4px;
 }

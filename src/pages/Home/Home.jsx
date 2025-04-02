@@ -1,85 +1,83 @@
 import { useState, useEffect } from "react";
-import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
+import { useNavigate } from "react-router-dom";
 import Input from "../../components/input/Input";
 import InputDD from "../../components/input/InputDD";
 import Modal from "../../components/modal/Modal";
 import Button from "../../components/button/Button";
 import { getStoredData } from "../../data/getMasterData";
 import "./Home.css";
+import { v4 as uuidv4 } from "uuid";
 
 function Home() {
-  // Estado para la opción de cargar productos ("Sí" o "No")
+  const navigate = useNavigate();
   const [selectedOption, setSelectedOption] = useState("No");
-  const [storeName, setStoreName] = useState("Almacén Central");
-  const [location, setLocation] = useState("Bogotá, Colombia"); // Agregamos el campo de ubicación
-  const [latitude, setLatitude] = useState("4.60971"); // Valor predeterminado de tu JSON
-  const [longitude, setLongitude] = useState("-74.08175"); // Valor predeterminado de tu JSON
+  const [storeName, setStoreName] = useState("");
+  const [location, setLocation] = useState("");
+  const [latitude, setLatitude] = useState("5.551157");
+  const [longitude, setLongitude] = useState("-73.3572938");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [products, setProducts] = useState([]);
   const [loadProductsModalOpen, setLoadProductsModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [apiKeyAvailable, setApiKeyAvailable] = useState(false);
-  const [mapCenter, setMapCenter] = useState({ lat: 4.60971, lng: -74.08175 });
+  const [existingWarehouses, setExistingWarehouses] = useState([]);
+  const [mapCenter, setMapCenter] = useState({
+    lat: 5.551157,
+    lng: -73.3572938,
+  });
+  const [markerPosition, setMarkerPosition] = useState({
+    lat: 5.551157,
+    lng: -73.3572938,
+  });
 
-  // Al iniciar, verificamos si la API key está disponible y cargamos los datos del JSON
+  // Al iniciar, verificamos si la API key está disponible y cargamos los almacenes existentes
   useEffect(() => {
-    // Check if API key is available
     if (process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
       setApiKeyAvailable(true);
     } else {
       console.error("Google Maps API key not found in environment variables");
     }
 
-    // Cargar los datos del JSON
-    const storeData = {
-      id: "40479c86-af4b-4c86-a2a5-e882f4aa7d64",
-      name: "Almacén Central",
-      location: "Bogotá, Colombia",
-      coordinates: {
-        latitude: 4.60971,
-        longitude: -74.08175,
-      },
-      products: [
-        {
-          id: 1,
-          name: "Producto X",
-          category: "Electrónicos",
-          price: 299.99,
-          stock: 100,
-        },
-        {
-          id: 2,
-          name: "Producto Y",
-          category: "Hogar",
-          price: 49.99,
-          stock: 50,
-        },
-      ],
+    // Cargar almacenes existentes
+    const fetchExistingWarehouses = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) throw new Error("No hay token de autenticación");
+
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/almacenes`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error al obtener almacenes: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setExistingWarehouses(Array.isArray(data) ? data : [data]);
+      } catch (err) {
+        console.error("Error fetching warehouses:", err);
+      }
     };
 
-    // Inicializar el formulario con los datos del JSON
-    setStoreName(storeData.name);
-    setLocation(storeData.location);
-    setLatitude(storeData.coordinates.latitude.toString());
-    setLongitude(storeData.coordinates.longitude.toString());
-    setMapCenter({
-      lat: storeData.coordinates.latitude,
-      lng: storeData.coordinates.longitude,
-    });
-    setProducts(storeData.products);
-    setSelectedOption("Sí"); // Seleccionamos "Sí" para cargar los productos del JSON
-  }, []);
+    fetchExistingWarehouses();
 
-  // Actualizar el centro del mapa cuando cambian latitud y longitud
-  useEffect(() => {
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-
-    if (!isNaN(lat) && !isNaN(lng)) {
-      setMapCenter({ lat, lng });
+    // Cargar los datos del JSON solo si existen
+    const storeData = getStoredData();
+    if (storeData && typeof storeData === "object" && storeData.coordinates) {
+      if (!storeData.id) {
+        storeData.id = uuidv4();
+      }
+      setStoreName(storeData.name || "");
+      setLocation(storeData.location || "");
+      setProducts(storeData.products || []);
+      setSelectedOption("Sí");
     }
-  }, [latitude, longitude]);
+  }, []);
 
   // Función para cargar productos desde el JSON
   const loadProducts = async () => {
@@ -119,22 +117,49 @@ function Home() {
 
     setLatitude(newLat.toFixed(6));
     setLongitude(newLng.toFixed(6));
-    setMapCenter({ lat: newLat, lng: newLng });
+    setMarkerPosition({ lat: newLat, lng: newLng });
   };
 
-  // Función para enviar los datos del almacén junto con los productos
+  // Función para manejar el movimiento del mapa
+  const handleMapDrag = (map) => {
+    const center = map.getCenter();
+    setMapCenter({
+      lat: center.lat(),
+      lng: center.lng(),
+    });
+  };
+
+  // Función para manejar el clic en el mapa
+  const handleMapClick = (e) => {
+    const newLat = e.detail.latLng.lat;
+    const newLng = e.detail.latLng.lng;
+
+    setLatitude(newLat.toFixed(6));
+    setLongitude(newLng.toFixed(6));
+    setMarkerPosition({ lat: newLat, lng: newLng });
+  };
+
+  // Función para navegar a un almacén existente
+  const handleWarehouseClick = (warehouseId) => {
+    navigate(`/warehouse/${warehouseId}`);
+  };
+
+  // Modificar handleSubmit para incluir la descripción
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
 
     try {
-      // Obtener el token de autenticación desde localStorage
       const token = localStorage.getItem("authToken");
       if (!token) {
         throw new Error("No hay token de autenticación");
       }
 
-      // Adaptar el formato para que coincida con lo que espera la API
+      // Validar campos requeridos
+      if (!storeName || !location) {
+        throw new Error("El nombre y la ubicación son campos obligatorios");
+      }
+
       const storeData = {
         name: storeName,
         location: location,
@@ -158,14 +183,17 @@ function Home() {
       );
 
       if (!response.ok) {
-        throw new Error(`Error al crear tienda: ${response.statusText}`);
+        throw new Error(`Error al crear Almacén: ${response.statusText}`);
       }
 
       const data = await response.json();
       setSuccessModalOpen(true);
-      console.log("Tienda creada:", data);
+      console.log("Almacén creado:", data);
+
+      // Actualizar la lista de almacenes existentes
+      setExistingWarehouses(prev => [...prev, data]);
     } catch (err) {
-      setError("No se pudo crear la tienda. Intenta nuevamente.");
+      setError("No se pudo crear el Almacén. Intenta nuevamente.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -183,44 +211,48 @@ function Home() {
 
   return (
     <div className="home-container">
-      <h2>Crear Nueva Tienda</h2>
+      <h2>Crear Nuevo Almacén</h2>
 
       <div className="create-store-layout">
-        {/* Formulario de creación de tienda */}
+        {/* Formulario de creación de Almacén */}
         <div className="form-section">
           <div className="form-content">
-            <h3>Información de la Tienda</h3>
+            <h3>Información del Almacén</h3>
 
-            <label htmlFor="storeName">Nombre de la tienda:</label>
+            <label htmlFor="storeName">Nombre del Almacén:</label>
             <Input
-              className="input"
               id="storeName"
+              type="text"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
+              placeholder="Ingrese el nombre del almacén"
             />
 
             <label htmlFor="location">Ubicación:</label>
             <Input
-              className="input"
               id="location"
+              type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
+              placeholder="Ejemplo: Calle 123, Ciudad"
             />
 
             <label htmlFor="latitude">Latitud:</label>
             <Input
-              className="input"
               id="latitude"
+              type="text"
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
+              placeholder="Ingrese la latitud"
             />
 
             <label htmlFor="longitude">Longitud:</label>
             <Input
-              className="input"
               id="longitude"
+              type="text"
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
+              placeholder="Ingrese la longitud"
             />
 
             <label htmlFor="dropdown">¿Cargar productos precargados?</label>
@@ -235,7 +267,7 @@ function Home() {
             </div>
 
             <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? "Cargando..." : "Crear tienda"}
+              {loading ? "Cargando..." : "Crear Almacén"}
             </Button>
 
             {error && <p className="error">{error}</p>}
@@ -254,15 +286,44 @@ function Home() {
                 <div style={containerStyle}>
                   <Map
                     defaultCenter={mapCenter}
-                    center={mapCenter}
                     defaultZoom={15}
-                    style={{ width: "100%", height: "100%" }}
+                    gestureHandling="greedy"
+                    mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || "default-map-id"}
+                    onDragEnd={(map) => handleMapDrag(map)}
+                    onClick={handleMapClick}
                   >
-                    <Marker
-                      position={mapCenter}
+                    {/* Mostrar los almacenes existentes */}
+                    {existingWarehouses.map((warehouse) => (
+                      <AdvancedMarker
+                        key={warehouse.id}
+                        position={{
+                          lat: warehouse.coordinates.latitude,
+                          lng: warehouse.coordinates.longitude
+                        }}
+                        onClick={() => handleWarehouseClick(warehouse.id)}
+                        title={warehouse.name}
+                      >
+                        <div className="property existing">
+                          <div className="icon">
+                            <i className="fas fa-warehouse"></i>
+                          </div>
+                        </div>
+                      </AdvancedMarker>
+                    ))}
+
+                    {/* Marcador del nuevo almacén */}
+                    <AdvancedMarker
+                      position={markerPosition}
                       draggable={true}
                       onDragEnd={handleMarkerDrag}
-                    />
+                      title="Ubicación del nuevo almacén"
+                    >
+                      <div className="property new">
+                        <div className="icon">
+                          <i className="fas fa-plus"></i>
+                        </div>
+                      </div>
+                    </AdvancedMarker>
                   </Map>
                 </div>
               </APIProvider>
@@ -298,8 +359,8 @@ function Home() {
 
       {/* Modal de éxito */}
       <Modal
-        title="Tienda Creada"
-        content="¡La tienda ha sido creada exitosamente!"
+        title="Almacén creado"
+        content="¡el Almacén ha sido creado exitosamente!"
         buttonLabel="Aceptar"
         onConfirm={() => {
           setSuccessModalOpen(false);

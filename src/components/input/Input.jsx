@@ -1,14 +1,16 @@
 import "./Input.css";
 
-function Input({ label, value, onChange }) {
+function Input({ label, value, onChange, className, id, type = "text", placeholder }) {
   return (
     <div className="input-container">
-      {label && <label className="input-label">{label}</label>}
+      {label && <label className="input-label" htmlFor={id}>{label}</label>}
       <input
-        type="text"
-        className="form-control"
-        value={value} // Ahora el valor del input es dinámico
-        onChange={onChange} // Permite actualizar el estado en Settings.js
+        type={type}
+        className={`form-control ${className || ''}`}
+        value={value}
+        onChange={onChange}
+        id={id}
+        placeholder={placeholder}
       />
     </div>
   );
