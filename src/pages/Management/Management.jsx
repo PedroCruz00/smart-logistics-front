@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../../components/card/Card";
-import Button from "../../components/button/Button";
+import VirtualWarehouseCard from "../../components/WarehouseCard/WarehouseCard";
 import "./Management.css";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -10,7 +10,7 @@ function Management() {
   const [searchId, setSearchId] = useState("");
   const [activeTab, setActiveTab] = useState("physical"); // Estado para controlar la pestaña activa
   const [physicalWarehouses, setPhysicalWarehouses] = useState([]);
-  const [virtualWarehouses, setVirtualWarehouses] = useState([]);
+  const [virtualWarehouse, setVirtualWarehouse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ function Management() {
           Array.isArray(physicalData) ? physicalData : [physicalData]
         );
 
-        // Obtener almacenes virtuales
+        // Obtener almacén virtual
         const virtualResponse = await fetch(`${API_URL}/almacen-virtual`, {
           method: "GET",
           headers: {
@@ -60,13 +60,11 @@ function Management() {
 
         if (!virtualResponse.ok)
           throw new Error(
-            `Error al obtener almacenes virtuales: ${virtualResponse.status}`
+            `Error al obtener almacén virtual: ${virtualResponse.status}`
           );
 
         const virtualData = await virtualResponse.json();
-        setVirtualWarehouses(
-          Array.isArray(virtualData) ? virtualData : [virtualData]
-        );
+        setVirtualWarehouse(virtualData);
       } catch (err) {
         console.error("❌ Fetch error:", err);
         setError(err.message);
@@ -78,9 +76,7 @@ function Management() {
     fetchData();
   }, []);
 
-  // Función para manejar la inspección de un almacén
   const handleInspect = (warehouseId, isVirtual = false) => {
-    // Primero verificamos que tenemos un token válido
     const token = localStorage.getItem("authToken");
     if (!token) {
       setError("No hay token de autenticación. Inicie sesión nuevamente.");
@@ -90,85 +86,49 @@ function Management() {
       return;
     }
 
-    // La URL podría ser diferente según el tipo de almacén
-    const path = isVirtual
-      ? `/almacen-virtual/edit/${warehouseId}`
-      : `/almacen/edit/${warehouseId}`;
-    navigate(path);
+    if (isVirtual && virtualWarehouse) {
+      navigate("/almacen-virtual", {
+        state: { warehouse: virtualWarehouse },
+      });
+    } else {
+      navigate(`/almacen/${warehouseId}`);
+    }
   };
 
-  // Filtrar almacenes según la búsqueda
   const filteredPhysicalWarehouses = physicalWarehouses.filter((warehouse) =>
     warehouse.id?.toString().includes(searchId.trim())
   );
-
-  const filteredVirtualWarehouses = virtualWarehouses.filter((warehouse) =>
-    warehouse.id?.toString().includes(searchId.trim())
-  );
-
-  // Componente de tarjeta para almacén físico
-  const PhysicalWarehouseCard = ({ warehouse }) => (
-    <div className="warehouse-card">
-      <Card
-        id={warehouse.id}
-        title={warehouse.name || "Almacén sin nombre"}
-        description={`Ubicación: ${warehouse.location || "No especificada"}`}
-      />
-      <Button onClick={() => handleInspect(warehouse.id)} text="Inspeccionar" />
-    </div>
-  );
-
-  // Componente de tarjeta para almacén virtual
-  const VirtualWarehouseCard = ({ warehouse }) => (
-    <div className="warehouse-card">
-      <Card
-        id={warehouse.id}
-        title={warehouse.name || "Almacén Virtual"}
-        description={`Productos: ${warehouse.products?.length || 0}`}
-      />
-      <Button
-        onClick={() => handleInspect(warehouse.id, true)}
-        text="Inspeccionar"
-      />
-    </div>
-  );
-
-  // Función para cambiar entre pestañas
-  const changeTab = (tab) => {
-    setActiveTab(tab);
-  };
 
   return (
     <div className="management-container">
       <h1>Gestión de Almacenes</h1>
 
-      {/* Pestañas */}
       <div className="tabs-container">
         <div
           className={`tab ${activeTab === "physical" ? "active" : ""}`}
-          onClick={() => changeTab("physical")}
+          onClick={() => setActiveTab("physical")}
         >
           Almacenes Físicos
         </div>
         <div
           className={`tab ${activeTab === "virtual" ? "active" : ""}`}
-          onClick={() => changeTab("virtual")}
+          onClick={() => setActiveTab("virtual")}
         >
-          Almacenes Virtuales
+          Almacén Virtual
         </div>
       </div>
 
-      {/* Filtro de búsqueda */}
-      <div className="filter-container">
-        <input
-          type="text"
-          placeholder="Filtrar por ID..."
-          value={searchId}
-          onChange={(e) => setSearchId(e.target.value)}
-        />
-      </div>
+      {activeTab === "physical" && (
+        <div className="filter-container">
+          <input
+            type="text"
+            placeholder="Filtrar por ID..."
+            value={searchId}
+            onChange={(e) => setSearchId(e.target.value)}
+          />
+        </div>
+      )}
 
-      {/* Contenido según la pestaña seleccionada */}
       {loading ? (
         <p>Cargando almacenes...</p>
       ) : error ? (
@@ -179,9 +139,13 @@ function Management() {
             <div className="grid">
               {filteredPhysicalWarehouses.length > 0 ? (
                 filteredPhysicalWarehouses.map((warehouse) => (
-                  <PhysicalWarehouseCard
+                  <Card
                     key={warehouse.id}
-                    warehouse={warehouse}
+                    id={warehouse.id}
+                    title={warehouse.name || "Almacén sin nombre"}
+                    description={`Ubicación: ${
+                      warehouse.location || "No especificada"
+                    }`}
                   />
                 ))
               ) : (
@@ -190,15 +154,16 @@ function Management() {
             </div>
           ) : (
             <div className="grid">
-              {filteredVirtualWarehouses.length > 0 ? (
-                filteredVirtualWarehouses.map((warehouse) => (
-                  <VirtualWarehouseCard
-                    key={warehouse.id}
-                    warehouse={warehouse}
-                  />
-                ))
+              {virtualWarehouse ? (
+                <VirtualWarehouseCard
+                  id={virtualWarehouse.id || "virtual"}
+                  title={virtualWarehouse.name || "Almacén Virtual"}
+                  description={`Productos: ${
+                    virtualWarehouse.products?.length || 0
+                  }`}
+                />
               ) : (
-                <p>No se encontraron almacenes virtuales</p>
+                <p>No se encontró el almacén virtual</p>
               )}
             </div>
           )}

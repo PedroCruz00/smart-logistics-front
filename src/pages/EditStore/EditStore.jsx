@@ -427,7 +427,7 @@ function ManageStore() {
       }
 
       alert(`Almacén ${store.name} ha sido eliminado exitosamente.`);
-      navigate("/almacen");
+      navigate("/management");
     } catch (err) {
       console.error("Error deleting store:", err);
       setError("Error al eliminar el almacén. Por favor intente nuevamente.");
@@ -513,7 +513,9 @@ function ManageStore() {
       <div className="error-container">
         <h2>Error</h2>
         <p>{error}</p>
-        <Button onClick={() => navigate("/almacen")}>Volver a almacenes</Button>
+        <Button onClick={() => navigate("/management")}>
+          Volver a almacenes
+        </Button>
       </div>
     );
   }
@@ -522,7 +524,9 @@ function ManageStore() {
     return (
       <div className="not-found-container">
         <h1>Almacén no encontrado</h1>
-        <Button onClick={() => navigate("/almacen")}>Volver a almacenes</Button>
+        <Button onClick={() => navigate("/management")}>
+          Volver a almacenes
+        </Button>
       </div>
     );
   }
