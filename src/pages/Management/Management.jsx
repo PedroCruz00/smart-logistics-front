@@ -45,6 +45,7 @@ function Management() {
           );
 
         const physicalData = await physicalResponse.json();
+        console.log('Datos de almacenes físicos recibidos:', physicalData);
         setPhysicalWarehouses(
           Array.isArray(physicalData) ? physicalData : [physicalData]
         );
@@ -64,6 +65,7 @@ function Management() {
           );
 
         const virtualData = await virtualResponse.json();
+        console.log('Datos de almacenes virtuales recibidos:', virtualData);
         setVirtualWarehouses(
           Array.isArray(virtualData) ? virtualData : [virtualData]
         );
