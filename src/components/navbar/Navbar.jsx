@@ -50,7 +50,7 @@ function Navbar() {
                 Management
               </Link>
             </li>
-            {user && user.role === "user" && (
+            {user && user.role === "SUPER_ADMIN" && (
               <li className="nav-item">
                 <Link
                   className={`nav-link ${isActive("/settings")}`}

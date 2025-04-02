@@ -45,7 +45,7 @@ function Management() {
           );
 
         const physicalData = await physicalResponse.json();
-        console.log('Datos de almacenes físicos recibidos:', physicalData);
+        console.log("Datos de almacenes físicos recibidos:", physicalData);
         setPhysicalWarehouses(
           Array.isArray(physicalData) ? physicalData : [physicalData]
         );
@@ -65,14 +65,7 @@ function Management() {
           );
 
         const virtualData = await virtualResponse.json();
-<<<<<<< HEAD
         setVirtualWarehouse(virtualData);
-=======
-        console.log('Datos de almacenes virtuales recibidos:', virtualData);
-        setVirtualWarehouses(
-          Array.isArray(virtualData) ? virtualData : [virtualData]
-        );
->>>>>>> eff01326ae0db4c1434e229075444dc96360242d
       } catch (err) {
         console.error("❌ Fetch error:", err);
         setError(err.message);

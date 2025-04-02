@@ -31,31 +31,54 @@ export const UserProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  const fetchUserRole = async (idToken) => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/auth/getRoles`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al obtener roles del usuario");
+      }
+
+      const data = await response.json();
+      return data[0]?.name || "user"; // Extrae el rol o asigna "user" por defecto
+    } catch (error) {
+      console.error("⚠️ Error obteniendo el rol del usuario:", error);
+      return "user"; // En caso de error, se asigna "user" por defecto
+    }
+  };
+
   // Escuchar cambios de autenticación en Firebase
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         try {
           const idToken = await currentUser.getIdToken();
+          localStorage.setItem("authToken", idToken);
 
-          // Construir el usuario actualizado
+          const role = await fetchUserRole(idToken); // ¡Aquí usamos await!
+
           const userData = {
             uid: currentUser.uid,
             email: currentUser.email,
             displayName: currentUser.displayName || "Usuario",
-            role: "user", // Aquí puedes agregar claims personalizados si los usas
+            role: role, // Ahora sí es el valor correcto
           };
 
-          // Guardar el token y usuario en localStorage
-          localStorage.setItem("authToken", idToken);
           localStorage.setItem("userData", JSON.stringify(userData));
-
           setUser(userData);
         } catch (error) {
-          console.error("⚠️ Error obteniendo token de Firebase:", error);
+          console.error("⚠️ Error obteniendo datos del usuario:", error);
         }
       } else {
-        // Si el usuario se desautentica, limpiar datos
         setUser(null);
         localStorage.removeItem("authToken");
         localStorage.removeItem("userData");
@@ -64,7 +87,7 @@ export const UserProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return () => unsubscribe(); // Limpiar suscripción
+    return () => unsubscribe();
   }, [auth]);
 
   // Cerrar sesión
@@ -80,21 +103,27 @@ export const UserProvider = ({ children }) => {
   };
 
   // Establecer usuario desde el token de la API (cuando inicias sesión con un backend)
-  const setUserFromToken = (authData) => {
+  const setUserFromToken = async (authData) => {
     if (authData && authData.idToken) {
-      const userData = {
-        uid: authData.localId,
-        email: authData.email,
-        displayName: authData.displayName || "Usuario",
-        role: "user", // Extraer de claims personalizados si aplica
-      };
+      try {
+        const role = await fetchUserRole(authData.idToken); // Asegurar que se espera el resultado de la función
 
-      // Guardar en localStorage
-      localStorage.setItem("authToken", authData.idToken);
-      localStorage.setItem("userData", JSON.stringify(userData));
+        const userData = {
+          uid: authData.localId,
+          email: authData.email,
+          displayName: authData.displayName || "Usuario",
+          role: role, // Ahora sí tiene el valor correcto
+        };
 
-      // Actualizar el estado global
-      setUser(userData);
+        // Guardar en localStorage
+        localStorage.setItem("authToken", authData.idToken);
+        localStorage.setItem("userData", JSON.stringify(userData));
+
+        // Actualizar el estado global
+        setUser(userData);
+      } catch (error) {
+        console.error("⚠️ Error estableciendo usuario desde el token:", error);
+      }
     }
   };
 
