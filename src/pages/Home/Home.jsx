@@ -6,23 +6,24 @@ import Modal from "../../components/modal/Modal";
 import Button from "../../components/button/Button";
 import { getStoredData } from "../../data/getMasterData";
 import "./Home.css";
+import { v4 as uuidv4 } from 'uuid';
 
 function Home() {
   // Estado para la opción de cargar productos ("Sí" o "No")
   const [selectedOption, setSelectedOption] = useState("No");
-  const [storeName, setStoreName] = useState("Almacén Central");
-  const [location, setLocation] = useState("Bogotá, Colombia"); // Agregamos el campo de ubicación
-  const [latitude, setLatitude] = useState("4.60971"); // Valor predeterminado de tu JSON
-  const [longitude, setLongitude] = useState("-74.08175"); // Valor predeterminado de tu JSON
+  const [storeName, setStoreName] = useState("");
+  const [location, setLocation] = useState("");
+  const [latitude, setLatitude] = useState("5.551157");
+  const [longitude, setLongitude] = useState("-73.3572938");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [products, setProducts] = useState([]);
   const [loadProductsModalOpen, setLoadProductsModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [apiKeyAvailable, setApiKeyAvailable] = useState(false);
-  const [mapCenter, setMapCenter] = useState({ lat: 4.60971, lng: -74.08175 });
+  const [mapCenter, setMapCenter] = useState({ lat: 5.551157, lng: -73.3572938 });
 
-  // Al iniciar, verificamos si la API key está disponible y cargamos los datos del JSON
+  // Al iniciar, verificamos si la API key está disponible
   useEffect(() => {
     // Check if API key is available
     if (process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
@@ -31,55 +32,18 @@ function Home() {
       console.error("Google Maps API key not found in environment variables");
     }
 
-    // Cargar los datos del JSON
-    const storeData = {
-      id: "40479c86-af4b-4c86-a2a5-e882f4aa7d64",
-      name: "Almacén Central",
-      location: "Bogotá, Colombia",
-      coordinates: {
-        latitude: 4.60971,
-        longitude: -74.08175,
-      },
-      products: [
-        {
-          id: 1,
-          name: "Producto X",
-          category: "Electrónicos",
-          price: 299.99,
-          stock: 100,
-        },
-        {
-          id: 2,
-          name: "Producto Y",
-          category: "Hogar",
-          price: 49.99,
-          stock: 50,
-        },
-      ],
-    };
-
-    // Inicializar el formulario con los datos del JSON
-    setStoreName(storeData.name);
-    setLocation(storeData.location);
-    setLatitude(storeData.coordinates.latitude.toString());
-    setLongitude(storeData.coordinates.longitude.toString());
-    setMapCenter({
-      lat: storeData.coordinates.latitude,
-      lng: storeData.coordinates.longitude,
-    });
-    setProducts(storeData.products);
-    setSelectedOption("Sí"); // Seleccionamos "Sí" para cargar los productos del JSON
-  }, []);
-
-  // Actualizar el centro del mapa cuando cambian latitud y longitud
-  useEffect(() => {
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-
-    if (!isNaN(lat) && !isNaN(lng)) {
-      setMapCenter({ lat, lng });
+    // Cargar los datos del JSON solo si existen
+    const storeData = getStoredData();
+    if (storeData && typeof storeData === 'object' && storeData.coordinates) {
+      if (!storeData.id) {
+        storeData.id = uuidv4();
+      }
+      setStoreName(storeData.name || "");
+      setLocation(storeData.location || "");
+      setProducts(storeData.products || []);
+      setSelectedOption("Sí");
     }
-  }, [latitude, longitude]);
+  }, []);
 
   // Función para cargar productos desde el JSON
   const loadProducts = async () => {
