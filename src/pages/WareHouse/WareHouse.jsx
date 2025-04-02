@@ -53,12 +53,10 @@ function WareHouse() {
 
   const containerStyle = {
     width: '100%',
-    height: '400px',
+    height: '100%', // Cambiado de 400px a 100%
     border: '1px solid #ccc',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5'
+    borderRadius: '8px',
+    overflow: 'hidden'
   };
 
   if (loading) {
@@ -94,83 +92,83 @@ function WareHouse() {
         <Button onClick={() => navigate('/management')}>Volver a Gestión</Button>
       </div>
 
-      <div className="warehouse-info">
-        <div className="info-section">
-          <h3>Información General</h3>
-          <div className="info-grid">
-            <div className="info-item">
-              <label>ID:</label>
-              <span>{warehouse.id}</span>
-            </div>
-            <div className="info-item">
-              <label>Nombre:</label>
-              <span>{warehouse.name}</span>
-            </div>
-            <div className="info-item">
-              <label>Ubicación:</label>
-              <span>{warehouse.location}</span>
-            </div>
-            <div className="info-item">
-              <label>Descripción:</label>
-              <span>{warehouse.description || 'Sin descripción'}</span>
-            </div>
-          </div>
-        </div>
-
-        {warehouse.products && warehouse.products.length > 0 && (
+      <div className="warehouse-content">
+        <div className="warehouse-info-side">
           <div className="info-section">
-            <h3>Productos ({warehouse.products.length})</h3>
-            <div className="products-grid">
-              {warehouse.products.map((product) => (
-                <div key={product.id} className="product-item">
-                  <h4>{product.name}</h4>
-                  <p>Categoría: {product.category}</p>
-                  <p>Precio: ${product.price}</p>
-                  <p>Stock: {product.stock}</p>
-                </div>
-              ))}
+            <h3>Información General</h3>
+            <div className="info-grid">
+              <div className="info-item">
+                <label>ID:</label>
+                <span>{warehouse.id}</span>
+              </div>
+              <div className="info-item">
+                <label>Nombre:</label>
+                <span>{warehouse.name}</span>
+              </div>
+              <div className="info-item">
+                <label>Ubicación:</label>
+                <span>{warehouse.location}</span>
+              </div>
             </div>
           </div>
-        )}
-      </div>
-      
-      <div className="map-section">
-        <h3>Ubicación en el Mapa</h3>
-        {apiKeyAvailable && warehouse.coordinates ? (
-          <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
-            <div style={containerStyle}>
-              <Map
-                defaultCenter={{
-                  lat: warehouse.coordinates.latitude,
-                  lng: warehouse.coordinates.longitude
-                }}
-                defaultZoom={15}
-                mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || 'default-map-id'}
-              >
-                <AdvancedMarker
-                  position={{
-                    lat: warehouse.coordinates.latitude,
-                    lng: warehouse.coordinates.longitude
-                  }}
-                >
-                  <div className="property">
-                    <div className="icon">
-                      <i className="fas fa-warehouse"></i>
-                    </div>
+
+          {warehouse.products && warehouse.products.length > 0 && (
+            <div className="info-section">
+              <h3>Productos ({warehouse.products.length})</h3>
+              <div className="products-grid">
+                {warehouse.products.map((product) => (
+                  <div key={product.id} className="product-item">
+                    <h4>{product.name}</h4>
+                    <p>Categoría: {product.category}</p>
+                    <p>Precio: ${product.price}</p>
+                    <p>Stock: {product.stock}</p>
                   </div>
-                </AdvancedMarker>
-              </Map>
+                ))}
+              </div>
             </div>
-          </APIProvider>
-        ) : (
-          <div style={containerStyle}>
-            {!apiKeyAvailable ? (
-              <p>No se puede cargar el mapa: Falta la clave API de Google Maps</p>
+          )}
+        </div>
+        
+        <div className="warehouse-map-side">
+          <div className="map-section">
+            <h3>Ubicación en el Mapa</h3>
+            {apiKeyAvailable && warehouse.coordinates ? (
+              <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
+                <div style={containerStyle}>
+                  <Map
+                    defaultCenter={{
+                      lat: warehouse.coordinates.latitude,
+                      lng: warehouse.coordinates.longitude
+                    }}
+                    defaultZoom={15}
+                    mapId={process.env.REACT_APP_GOOGLE_MAPS_ID || 'default-map-id'}
+                  >
+                    <AdvancedMarker
+                      position={{
+                        lat: warehouse.coordinates.latitude,
+                        lng: warehouse.coordinates.longitude
+                      }}
+                    >
+                      <div className="property">
+                        <div className="icon">
+                          <i className="fas fa-warehouse"></i>
+                        </div>
+                      </div>
+                    </AdvancedMarker>
+                  </Map>
+                </div>
+              </APIProvider>
             ) : (
-              <p>No hay coordenadas disponibles para este almacén</p>
+              <div style={containerStyle}>
+                {!apiKeyAvailable ? (
+                  <p>No se puede cargar el mapa: Falta la clave API de Google Maps</p>
+                ) : (
+                  <p>No hay coordenadas disponibles para este almacén</p>
+                )}
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

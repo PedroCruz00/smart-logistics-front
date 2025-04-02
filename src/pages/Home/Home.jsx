@@ -113,19 +113,22 @@ function Home() {
     setMarkerPosition({ lat: newLat, lng: newLng });
   };
 
-  // Función para enviar los datos del almacén junto con los productos
+  // Modificar handleSubmit para incluir la descripción
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
 
     try {
-      // Obtener el token de autenticación desde localStorage
       const token = localStorage.getItem("authToken");
       if (!token) {
         throw new Error("No hay token de autenticación");
       }
 
-      // Adaptar el formato para que coincida con lo que espera la API
+      // Validar campos requeridos
+      if (!storeName || !location) {
+        throw new Error("El nombre y la ubicación son campos obligatorios");
+      }
+
       const storeData = {
         name: storeName,
         location: location,
@@ -189,7 +192,7 @@ function Home() {
               type="text"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
-              placeholder="Ingrese el nombre de la Almacén"
+              placeholder="Ingrese el nombre del almacén"
             />
 
             <label htmlFor="location">Ubicación:</label>
@@ -198,7 +201,7 @@ function Home() {
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Ingrese la ubicación"
+              placeholder="Ejemplo: Calle 123, Ciudad"
             />
 
             <label htmlFor="latitude">Latitud:</label>
